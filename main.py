@@ -6,6 +6,8 @@ import numpy as np
 import torchvision.transforms as transforms
 
 from torchvision import models
+from torchvision.models import ResNet18_Weights 
+from tqdm import tqdm
 
 from dataloader import IncrementalMNIST
 
@@ -111,9 +113,13 @@ class iCaRLModel(nn.Module):
             for images, labels in train_loader:
                 for i in range(len(labels)):
                     if labels[i] == class_idx:
-                        class_data.append(images[i].numpy())
+                        class_data.append(images[i].cpu().numpy())  # 이미지를 numpy 형태로 저장
 
-            class_data = torch.tensor(class_data)
+            # numpy 배열로 변환 후 텐서로 변환
+            class_data = np.array(class_data)
+            class_data = torch.tensor(class_data).to(self.device)  # 텐서를 모델과 동일한 장치로 이동
+
+            # 특징 추출
             features = self.extract_features(class_data).detach().cpu().numpy()
 
             # K-means와 같은 방식으로 메모리에서 저장할 데이터 선정 (평균과 가장 가까운 데이터 선택)
@@ -131,12 +137,10 @@ class iCaRLModel(nn.Module):
 
             self.exemplar_sets.append(np.array(exemplar))
 
-from tqdm import tqdm
-
 # 사용 예시
 if __name__ == "__main__":
     # ResNet18을 feature extractor로 사용
-    feature_extractor = models.resnet18(pretrained=True)
+    feature_extractor = models.resnet18(weights = ResNet18_Weights.DEFAULT)
     num_classes = 10  # 총 클래스 수
     model = iCaRLModel(feature_extractor, num_classes)
 
@@ -156,7 +160,7 @@ if __name__ == "__main__":
         train_loader = incremental_mnist.get_incremental_loader(increment)
 
         # tqdm을 통해 학습 과정 모니터링
-        for epoch in range(5):  # 각 증분 단계마다 5 epochs로 학습
+        for epoch in range(1):  # 각 증분 단계마다 5 epochs로 학습
             with tqdm(train_loader, unit="batch") as tepoch:
                 tepoch.set_description(f"Increment {increment + 1}, Epoch {epoch + 1}")
                 model.train()  # 학습 모드로 변경
