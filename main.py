@@ -9,7 +9,7 @@ from torchvision import models
 from torchvision.models import ResNet18_Weights 
 from tqdm import tqdm
 
-from dataloader import IncrementalMNIST
+from CL.data.dataloader import IncrementalMNIST
 
 
 # iCaRL 모델 클래스 정의
