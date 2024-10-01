@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from Resnet import resnet18
-from Buffer import BUFFER
+from model.resnet import resnet18
+from model.buffer import BUFFER
 
 class CL_MODEL(nn.Module):
     

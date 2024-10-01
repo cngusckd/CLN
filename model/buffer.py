@@ -23,7 +23,7 @@ class BUFFER:
         
         self.num_seen_examples += 1
 
-        if self.num_seen_examples < self.buffer_size:
+        if self.num_seen_examples < self.buffer_memory_size:
             # 버퍼가 꽉 차 있지 않은 경우, 그냥 추가함
             self.examples[self.num_seen_examples] = input_data
             self.labels[self.num_seen_examples] = input_label
