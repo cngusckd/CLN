@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, Subset, random_split
 
 class IncrementalMNIST(MNIST):
     def __init__(self, root='./data', train=True, transform=None, target_transform=None, download=True,
-                 num_increments=5, batch_size=64, increment_type='class'):
+                 num_increments=5, batch_size=64, increment_type='cil'):
         # MNIST 초기화
         super().__init__(root=root, train=train, transform=transform, target_transform=target_transform, download=download)
         
@@ -14,13 +14,13 @@ class IncrementalMNIST(MNIST):
         self.increment_type = increment_type
 
         # 데이터 인덱스 분할
-        if self.increment_type == 'class':
+        if self.increment_type == 'cil':
             # 클래스별 인덱스 나누기
             self.indices_by_class = [[] for _ in range(10)]
             self._split_indices_by_class()
             self.incremental_loaders = []
             self._create_class_incremental_loaders()
-        elif self.increment_type == 'domain':
+        elif self.increment_type == 'dil':
             # 도메인별 분할 (랜덤하게 num_increments개로 나눔)
             self.incremental_loaders = []
             self._create_domain_incremental_loaders()

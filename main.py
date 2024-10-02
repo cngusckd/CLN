@@ -2,13 +2,48 @@ import torch
 
 from torchvision import transforms
 from tqdm import tqdm
+from argparse import ArgumentParser
+
 
 from model.er import ER
 from data.dataloader import IncrementalMNIST
 
+def pasre_arg():
+    
+    cfg = ArgumentParser(description = "CHU CL Framework",
+                            allow_abbrev = False)
+    
+    # CL Experiments Settings
+    cfg.add_argument('--dataset', type = str, default = 'mnist',
+                     help = 'experiment dataset', choices = ['mnist'])
+    cfg.add_argument('--cl_type', type = str, default = 'cil',
+                     help = 'CL exepriment type', choices = ['cil, dil'])
+    cfg.add_argument('--nclasses', type = int, default = 10,
+                     help = 'nclasses of dataset')
+    cfg.add_argument('--num_increments', type = int, default = 5,
+                     help = 'task num of CL')
+    cfg.add_argument('--device', type = str, default='cuda',
+                     help = 'deep learing devices', choices = ['cpu', 'cuda'])
+    temp = cfg.parse_args()
+    if temp.nclasses % temp.num_increments != 0:
+        raise "cant divide into CL tasks!"
+    
+    # CL Methods Settigns
+    cfg.add_argument('--batch_size', type = int, default = 64,
+                     help = 'batch size for current data stream, when incremental learning is adoptted, \
+                         total batch size is batch_size + buffer_batch_size')
+    cfg.add_argument('--buffer_batch_size', type = int, default = 64,
+                     help = 'batch size for sampled buffer data, when incremental learning is adoptted, \
+                         total batch size is batch_size + buffer_batch_size')
+    
+    return cfg.parse_args()
+
+
 if __name__ == '__main__':
     
-    _NUM_INCREMENTS = 5
+    cfg = pasre_arg()
+    
+    cfg.num_increments = 5
     _NCLASSES = 10
     _EPOCH = 10
     _BACH_SIZE = 64
@@ -24,27 +59,27 @@ if __name__ == '__main__':
     cil_mnist_train = IncrementalMNIST(root = './data',
                                        train = True,
                                        transform = transform,
-                                       num_increments = _NUM_INCREMENTS,
-                                       batch_size = _BACH_SIZE,
-                                       increment_type = 'class')
+                                       num_increments = cfg.num_increments,
+                                       batch_size = cfg.batch_size,
+                                       increment_type = cfg.cl_type)
     cil_mnist_test = IncrementalMNIST(root = './data',
                                        train = False,
                                        transform = transform,
-                                       num_increments = _NUM_INCREMENTS,
-                                       batch_size = _BACH_SIZE,
-                                       increment_type = 'class')
+                                       num_increments = cfg.num_increments,
+                                       batch_size = cfg.batch_size,
+                                       increment_type = cfg.cl_type)
     
-    cl_model = ER(nclasses = _NCLASSES,
+    cl_model = ER(nclasses = cfg.nclasses,
                   buffer_memory_size = 1000,
-                  buffer_batch_size = _BUFFER_BATCH_SIZE,
+                  buffer_batch_size = cfg.buffer_batch_size,
                   input_size = (28,28),
-                  _DEVICE = _DEVICE)
+                  _DEVICE = torch.device(cfg.device))
     
     val_loader_list = []
-    for _idx in range(_NUM_INCREMENTS):
+    for _idx in range(cfg.num_increments):
         val_loader_list.append(cil_mnist_test.get_incremental_loader(_idx))
     
-    for _incremental_time in range(_NUM_INCREMENTS):
+    for _incremental_time in range(cfg.num_increments):
         
         train_loader = cil_mnist_train.get_incremental_loader(_incremental_time)
 
