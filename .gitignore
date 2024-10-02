@@ -1,2 +1,2 @@
-data/IncrementalMNIST
-data/__pycache__
+data/IncrementalMNIST/*
+data/__pycache__/*
