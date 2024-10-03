@@ -56,7 +56,7 @@ class BUFFER:
 if __name__ == '__main__':
     # Buufer TEST
     
-    buffer = BUFFER(buffer_size= 50, image_shape=(64, 64))
+    buffer = BUFFER(buffer_memory_size= 50, image_shape=(64, 64))
     
     for k in range(100):
         test_input = torch.rand((64,64))
