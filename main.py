@@ -6,7 +6,6 @@ from argparse import ArgumentParser
 
 
 from model.er import ER
-from model.icarl import iCaRL
 from data.dataloader import IncrementalMNIST
 
 def pasre_arg():
@@ -83,51 +82,6 @@ def er_train_example(cfg, train, test):
             test_reulsts = cl_model.eval(test_loader, _incremental_time)
             print(test_reulsts)
 
-def icarl_train_example(cfg, train, test):
-    
-    
-    cl_model = iCaRL(nclasses = cfg.nclasses,
-                  buffer_memory_size = 1000,
-                  buffer_batch_size = cfg.buffer_batch_size,
-                  image_shape = (28,28),
-                  _DEVICE = torch.device(cfg.device))
-    
-    val_loader_list = []
-    for _idx in range(cfg.num_increments):
-        val_loader_list.append(test.get_incremental_loader(_idx))
-    
-    for _incremental_time in range(cfg.num_increments):
-        
-        train_loader = train.get_incremental_loader(_incremental_time)
-
-        if _incremental_time == 0:
-            
-            cl_model.buffer.update_seen_classes(train_loader)
-            exit()
-            for epoch in range(cfg.epoch):
-                for inputs, labels in tqdm(train_loader,
-                                           desc=f'Task {_incremental_time} Epoch {epoch} Training....',
-                                           total = len(train_loader),
-                                           ncols = 150):
-
-                    cl_model.observe(inputs, labels)
-        else:
-            for epoch in range(cfg.epoch):
-                for inputs, labels in tqdm(train_loader,
-                                           desc=f'Task {_incremental_time} Epoch {epoch} Training....',
-                                           total = len(train_loader),
-                                           ncols = 150):
-                    
-                    sampled_inputs, sampled_labels = cl_model.buffer_sampling()
-                    inputs = torch.cat((inputs, sampled_inputs))
-                    labels = torch.cat((labels, sampled_labels))
-                    cl_model.observe(inputs, labels)
-                    cl_model.buffer_update(inputs, labels)
-        
-        for _incremental_time, test_loader in enumerate(val_loader_list[:_incremental_time+1]):
-            test_reulsts = cl_model.eval(test_loader, _incremental_time)
-            print(test_reulsts)
-
 
 if __name__ == '__main__':
     
@@ -152,4 +106,4 @@ if __name__ == '__main__':
                                        batch_size = cfg.batch_size,
                                        increment_type = cfg.cl_type)
     
-    icarl_train_example(cfg, cil_mnist_train, cil_mnist_test)
+    er_train_example(cfg, cil_mnist_train, cil_mnist_test)
