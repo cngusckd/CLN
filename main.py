@@ -6,7 +6,7 @@ from argparse import ArgumentParser
 
 
 from model.er import ER, er_train_example
-from model.der import DER, der_train_example
+from model.der import der_train_example, derpp_train_example
 from data.dataloader import IncrementalMNIST
 
 def pasre_arg():
@@ -66,11 +66,11 @@ if __name__ == '__main__':
                                        num_increments = cfg.num_increments,
                                        batch_size = cfg.batch_size,
                                        increment_type = cfg.cl_type)
-    er_avg_acc = er_train_example(cfg, cil_mnist_train, cil_mnist_test)
-    der_avg_acc = der_train_example(cfg, cil_mnist_train, cil_mnist_test)
+    # er_avg_acc = er_train_example(cfg, cil_mnist_train, cil_mnist_test)
+    der_avg_acc = derpp_train_example(cfg, cil_mnist_train, cil_mnist_test)
     
     experimental_output = dict()
-    experimental_output['ER'] = er_avg_acc
-    experimental_output['DER'] = der_avg_acc
+    # experimental_output['ER'] = er_avg_acc
+    experimental_output['DER++'] = der_avg_acc
     
     print(f'\n\n\n {experimental_output} \n\n\n')
