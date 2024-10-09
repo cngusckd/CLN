@@ -80,7 +80,7 @@ class DER(CL_MODEL):
 
 def der_train_example(cfg, train, test):
     cl_model = DER(nclasses=cfg.nclasses,
-                   buffer_memory_size=1000,
+                   buffer_memory_size=cfg.buffer_memory_size,
                    buffer_batch_size=cfg.buffer_batch_size,
                    image_shape=(28, 28),
                    _DEVICE=torch.device(cfg.device))
@@ -119,3 +119,11 @@ def der_train_example(cfg, train, test):
         for _incremental_time, test_loader in enumerate(val_loader_list[:_incremental_time + 1]):
             test_results = cl_model.eval(test_loader, _incremental_time)
             print(test_results)
+    AVG_ACC = 0
+    for _incremental_time, test_loader in enumerate(val_loader_list):
+        test_reulsts = cl_model.eval(test_loader, _incremental_time)
+        AVG_ACC += test_reulsts[f'Task_{_incremental_time}_EVAL_ACC']
+    AVG_ACC /= (cfg.num_increments)
+    print(f'\n Average Accuracy = {AVG_ACC}')
+    
+    return AVG_ACC
