@@ -72,49 +72,22 @@ class ER(CL_MODEL):
         self.backbone.train()
         
         return temp
-        
-        
-'''
-# Example Code
-if __name__ == '__main__':
-    
-    cfg = pasre_arg()
-    
-    cfg.num_increments = 5
-    _EPOCH = 10
-    # transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))])
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 1채널 이미지를 3채널로 복사
-        transforms.Normalize((0.5,), (0.5,))
-    ])
-    
-    cil_mnist_train = IncrementalMNIST(root = './data',
-                                       train = True,
-                                       transform = transform,
-                                       num_increments = cfg.num_increments,
-                                       batch_size = cfg.batch_size,
-                                       increment_type = cfg.cl_type)
-    cil_mnist_test = IncrementalMNIST(root = './data',
-                                       train = False,
-                                       transform = transform,
-                                       num_increments = cfg.num_increments,
-                                       batch_size = cfg.batch_size,
-                                       increment_type = cfg.cl_type)
+
+def er_train_example(cfg, train, test):
     
     cl_model = ER(nclasses = cfg.nclasses,
                   buffer_memory_size = 1000,
                   buffer_batch_size = cfg.buffer_batch_size,
-                  input_size = (28,28),
+                  image_shape = (28,28),
                   _DEVICE = torch.device(cfg.device))
     
     val_loader_list = []
     for _idx in range(cfg.num_increments):
-        val_loader_list.append(cil_mnist_test.get_incremental_loader(_idx))
+        val_loader_list.append(test.get_incremental_loader(_idx))
     
     for _incremental_time in range(cfg.num_increments):
         
-        train_loader = cil_mnist_train.get_incremental_loader(_incremental_time)
+        train_loader = train.get_incremental_loader(_incremental_time)
 
         if _incremental_time == 0:
             for epoch in range(cfg.epoch):
@@ -126,7 +99,7 @@ if __name__ == '__main__':
                     cl_model.observe(inputs, labels)
                     cl_model.buffer_update(inputs, labels)
         else:
-            for epoch in range(_EPOCH):
+            for epoch in range(cfg.epoch):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total = len(train_loader),
@@ -141,4 +114,3 @@ if __name__ == '__main__':
         for _incremental_time, test_loader in enumerate(val_loader_list[:_incremental_time+1]):
             test_reulsts = cl_model.eval(test_loader, _incremental_time)
             print(test_reulsts)
-'''
