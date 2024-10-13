@@ -53,12 +53,13 @@ if __name__ == '__main__':
     
     cfg = pasre_arg()
     
-    transform = transforms.Compose([
-        transforms.ToTensor(),
-        # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 1채널 이미지를 3채널로 복사, MNIST 학습에 사용
-        transforms.Normalize((0.5,), (0.5,))
-    ])
     if cfg.dataset == 'cifar10':
+        
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        
         cil_train = IncrementalCIFAR10(root = './data',
                                            train = True,
                                            transform = transform,
@@ -71,7 +72,45 @@ if __name__ == '__main__':
                                            num_increments = cfg.num_increments,
                                            batch_size = cfg.batch_size,
                                            increment_type = cfg.cl_type)
-    
+    elif cfg.dataset == 'cifar100':
+        
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        
+        cil_train = IncrementalCIFAR100(root = './data',
+                                           train = True,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
+        cil_test = IncrementalCIFAR100(root = './data',
+                                           train = False,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
+    elif cfg.dataset == 'mnist':
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 1채널 이미지를 3채널로 복사, MNIST 학습에 사용
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        cfg.image_shape = [28, 28]
+        cil_train = IncrementalMNIST(root = './data',
+                                           train = True,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
+        cil_test = IncrementalMNIST(root = './data',
+                                           train = False,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
+        
     experimental_output = dict()
     experimental_output['CONFIGS'] = vars(cfg)
     local_tz = pytz.timezone('Asia/Seoul')

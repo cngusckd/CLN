@@ -39,6 +39,8 @@ class ER_ACE(CL_MODEL):
         
         outputs = self.backbone(inputs)
         
+        # incomiing batch 마스킹
+        # unseen class에 대한 maksing 추가 필요 !!!!!!!!!!!
         present = labels.unique()
         mask = torch.zeros_like(outputs)
         mask[:, present] = 1
@@ -47,6 +49,7 @@ class ER_ACE(CL_MODEL):
         
         new_loss = self.loss(outputs, labels)
         
+        # past data와 분리
         inputs, labels = sampled_inputs.to(self._DEVICE), sampled_labels.to(self._DEVICE)
         
         outputs = self.backbone(inputs)
