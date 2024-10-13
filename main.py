@@ -1,9 +1,10 @@
-import torch
+import json
+import os
+import pytz
 
 from torchvision import transforms
-from tqdm import tqdm
 from argparse import ArgumentParser
-
+from datetime import datetime
 
 from model.er import er_train_example
 from model.der import der_train_example, derpp_train_example
@@ -18,7 +19,7 @@ def pasre_arg():
     
     # CL Experiments Settings
     cfg.add_argument('--dataset', type = str, default = 'mnist',
-                     help = 'experiment dataset', choices = ['mnist'])
+                     help = 'experiment dataset', choices = ['mnist', 'cifar10', 'cifar100'])
     cfg.add_argument('--image_shape', type = set, default = (32,32),
                      help = 'image_shpae of dataset')
     cfg.add_argument('--cl_type', type = str, default = 'cil',
@@ -57,25 +58,33 @@ if __name__ == '__main__':
         # transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # 1채널 이미지를 3채널로 복사, MNIST 학습에 사용
         transforms.Normalize((0.5,), (0.5,))
     ])
+    if cfg.dataset == 'cifar10':
+        cil_train = IncrementalCIFAR10(root = './data',
+                                           train = True,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
+        cil_test = IncrementalCIFAR10(root = './data',
+                                           train = False,
+                                           transform = transform,
+                                           num_increments = cfg.num_increments,
+                                           batch_size = cfg.batch_size,
+                                           increment_type = cfg.cl_type)
     
-    cil_train = IncrementalCIFAR10(root = './data',
-                                       train = True,
-                                       transform = transform,
-                                       num_increments = cfg.num_increments,
-                                       batch_size = cfg.batch_size,
-                                       increment_type = cfg.cl_type)
-    cil_test = IncrementalCIFAR10(root = './data',
-                                       train = False,
-                                       transform = transform,
-                                       num_increments = cfg.num_increments,
-                                       batch_size = cfg.batch_size,
-                                       increment_type = cfg.cl_type)
+    experimental_output = dict()
+    experimental_output['CONFIGS'] = vars(cfg)
+    local_tz = pytz.timezone('Asia/Seoul')
+    saved_dir = f'experiment_outputs/{datetime.now(local_tz).strftime("%Y%m%d%H%M")}'
+    os.makedirs(saved_dir, exist_ok = True)
+    with open(os.path.join(saved_dir, 'experimental_output.json'), mode = 'w') as f:
+        json.dump(experimental_output, f, indent = 4)
+    
+    
     er_avg_acc = er_train_example(cfg, cil_train, cil_test)
     der_acg_acc = der_train_example(cfg, cil_train, cil_test)
     derpp_avg_acc = derpp_train_example(cfg, cil_train, cil_test)
     er_ace_avg_acc = er_ace_train_example(cfg, cil_train, cil_test)
-    
-    experimental_output = dict()
     
     experimental_output['ER'] = er_avg_acc
     experimental_output['DER'] = der_acg_acc
@@ -83,3 +92,6 @@ if __name__ == '__main__':
     experimental_output['ER-ACE'] = er_ace_avg_acc
     
     print(f'\n\n\n {experimental_output} \n\n\n')
+    
+    with open(os.path.join(saved_dir, 'experimental_output.json'), mode = 'w') as f:
+        json.dump(experimental_output, f, indent = 4)

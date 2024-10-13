@@ -173,7 +173,7 @@ def der_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total=len(train_loader),
-                                           ncols=150):
+                                           ncols = 100):
                     outputs = cl_model.backbone(inputs.to(cl_model._DEVICE))
                     cl_model.observe(inputs, labels)
                     cl_model.buffer_update(inputs, labels, outputs.detach())
@@ -182,7 +182,7 @@ def der_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total=len(train_loader),
-                                           ncols=150):
+                                           ncols = 100):
                     sampled_inputs, sampled_labels, sampled_logits = cl_model.buffer_sampling()
                     if sampled_inputs is not None:
                         inputs = torch.cat((inputs, sampled_inputs))
@@ -223,7 +223,7 @@ def derpp_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total=len(train_loader),
-                                           ncols=150):
+                                           ncols = 100):
                     outputs = cl_model.backbone(inputs.to(cl_model._DEVICE))
                     cl_model.observe(inputs, labels)
                     cl_model.buffer_update(inputs, labels, outputs.detach())
@@ -232,7 +232,7 @@ def derpp_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total=len(train_loader),
-                                           ncols=150):
+                                           ncols = 100):
                     sampled_inputs, sampled_labels, sampled_logits = cl_model.buffer_sampling()
                     if sampled_inputs is not None:
                         inputs = torch.cat((inputs, sampled_inputs))

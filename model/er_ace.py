@@ -122,7 +122,7 @@ def er_ace_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total = len(train_loader),
-                                           ncols = 150):
+                                           ncols = 100):
 
                     cl_model.observe(inputs, labels)
                     cl_model.buffer_update(inputs, labels)
