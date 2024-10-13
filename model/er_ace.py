@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 from model.continual_model import CL_MODEL
 
-class ER(CL_MODEL):
+class ER_ACE(CL_MODEL):
     
     def __init__(self, 
                  nclasses, 
@@ -16,7 +16,7 @@ class ER(CL_MODEL):
         super().__init__(nclasses, buffer_memory_size, buffer_batch_size, image_shape, _DEVICE)
         
         self._DEVICE = _DEVICE
-    
+     
     def observe(self, inputs, labels):
         
         self.optimizer.zero_grad()
@@ -26,6 +26,34 @@ class ER(CL_MODEL):
         outputs = self.backbone(inputs)
         
         loss = self.loss(outputs, labels)
+        loss.backward()
+        self.optimizer.step()
+        
+        return loss.item()
+    
+    def sperated_observe(self, inputs, labels, sampled_inputs, sampled_labels):
+        
+        self.optimizer.zero_grad()
+        
+        inputs, labels = inputs.to(self._DEVICE), labels.to(self._DEVICE)
+        
+        outputs = self.backbone(inputs)
+        
+        present = labels.unique()
+        mask = torch.zeros_like(outputs)
+        mask[:, present] = 1
+        
+        outputs = outputs.masked_fill(mask == 0, -1e9)
+        
+        new_loss = self.loss(outputs, labels)
+        
+        inputs, labels = sampled_inputs.to(self._DEVICE), sampled_labels.to(self._DEVICE)
+        
+        outputs = self.backbone(inputs)
+        
+        buffer_loss = self.loss(outputs, labels)
+        
+        loss = new_loss + buffer_loss
         loss.backward()
         self.optimizer.step()
         
@@ -73,13 +101,13 @@ class ER(CL_MODEL):
         
         return temp
 
-def er_train_example(cfg, train, test):
+def er_ace_train_example(cfg, train, test):
     
-    cl_model = ER(nclasses = cfg.nclasses,
-                  buffer_memory_size = cfg.buffer_memory_size,
-                  buffer_batch_size = cfg.buffer_batch_size,
-                  image_shape = cfg.image_shape,
-                  _DEVICE = torch.device(cfg.device))
+    cl_model = ER_ACE(nclasses = cfg.nclasses,
+                      buffer_memory_size = cfg.buffer_memory_size,
+                      buffer_batch_size = cfg.buffer_batch_size,
+                      image_shape = cfg.image_shape,
+                      _DEVICE = torch.device(cfg.device))
     
     val_loader_list = []
     for _idx in range(cfg.num_increments):
@@ -103,12 +131,12 @@ def er_train_example(cfg, train, test):
                 for inputs, labels in tqdm(train_loader,
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total = len(train_loader),
-                                           ncols = 150):
+                                           ncols = 100):
                     
                     sampled_inputs, sampled_labels = cl_model.buffer_sampling()
-                    inputs = torch.cat((inputs, sampled_inputs))
-                    labels = torch.cat((labels, sampled_labels))
-                    cl_model.observe(inputs, labels)
+                    
+                    cl_model.sperated_observe(inputs, labels, sampled_inputs, sampled_labels)
+                    
                     cl_model.buffer_update(inputs, labels)
         
         for _incremental_time, test_loader in enumerate(val_loader_list[:_incremental_time+1]):

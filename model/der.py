@@ -155,10 +155,10 @@ class DERPP(CL_MODEL):
         return temp
 
 def der_train_example(cfg, train, test):
-    cl_model = DER(nclasses=cfg.nclasses,
-                   buffer_memory_size=cfg.buffer_memory_size,
-                   buffer_batch_size=cfg.buffer_batch_size,
-                   image_shape=(28, 28),
+    cl_model = DER(nclasses = cfg.nclasses,
+                   buffer_memory_size = cfg.buffer_memory_size,
+                   buffer_batch_size = cfg.buffer_batch_size,
+                   image_shape= cfg.image_shape,
                    _DEVICE=torch.device(cfg.device))
     
     val_loader_list = []
@@ -205,10 +205,10 @@ def der_train_example(cfg, train, test):
     return AVG_ACC
 
 def derpp_train_example(cfg, train, test):
-    cl_model = DERPP(nclasses=cfg.nclasses,
-                     buffer_memory_size=cfg.buffer_memory_size,
-                     buffer_batch_size=cfg.buffer_batch_size,
-                     image_shape=(28, 28),
+    cl_model = DERPP(nclasses = cfg.nclasses,
+                     buffer_memory_size = cfg.buffer_memory_size,
+                     buffer_batch_size = cfg.buffer_batch_size,
+                     image_shape = cfg.image_shape,
                      _DEVICE=torch.device(cfg.device))
     
     val_loader_list = []

@@ -106,6 +106,42 @@ class DERBUFFER:
 
         return _return_example_list, _return_label_list, _return_logits_list
 
+class iCaRLBUFFER:
+    '''
+    iCaRL 메모리 버퍼
+    '''
+    def __init__(self, buffer_memory_size, image_shape):
+        self.buffer_memory_size = buffer_memory_size
+        self.image_shape = image_shape
+        self.num_seen_classes = set()
+        self.examples = torch.zeros((self.buffer_memory_size, 3, self.image_shape[0], self.image_shape[1]), dtype = torch.float32)
+        self.labels = torch.zeros((self.buffer_memory_size, 1), dtype = torch.int64)
+        self.first_init = True
+    
+    def __len__(self):
+        return min(self.num_seen_examples, self.buffer_memory_size)
+    
+    def begin_task(self, train_loader):
+        
+        if self.first_init:
+            
+            for _, _label in train_loader:
+
+                for label in _label:
+                    self.num_seen_classes.update(label)
+            
+            self.first_init = False
+        
+    
+    def make_examples_per_class(buffer_memory_size_per_class, image_shape):
+        
+        example_buffer = torch.zeros((buffer_memory_size_per_class, 3, image_shape[0], image_shape[1]), dtype = torch.float32 )
+        label_buffer = torch.zeros((buffer_memory_size_per_class, 1), dtype = torch.int64)
+        
+        return example_buffer, label_buffer
+    
+    def get_memory(self):
+        return list(zip(self.examples[:len(self)], self.labels[:len(self)]))
        
 if __name__ == '__main__':
     # Buufer TEST
