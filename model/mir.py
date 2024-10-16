@@ -20,7 +20,6 @@ class ERMIR(CL_MODEL):
         super().__init__(nclasses, buffer_memory_size, buffer_batch_size, image_shape, _DEVICE)
         
         self.buffer = BUFFER(buffer_memory_size, image_shape)
-        self.virtual_model = copy.deepcopy(self)
         self.buffer_sampling_size = buffer_sampling_size
         self.buffer_batch_size = buffer_batch_size
         self._DEVICE = _DEVICE
@@ -81,7 +80,7 @@ class ERMIR(CL_MODEL):
         temp = temp[:self.buffer_batch_size]
         temp = [i[0] for i in temp]
         self.backbone.train()
-        self.virtual_cl_model.backbone.train()
+        self.virtual_cl_model = None
         
         return sampled_inputs[temp], sampled_labels[temp]
         
