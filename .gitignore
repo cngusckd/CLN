@@ -1,3 +1,4 @@
 data/*
 !data/dataloader.py
 experiment_outputs/*
+experiment_outputs_test/*
