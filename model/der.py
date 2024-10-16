@@ -174,7 +174,10 @@ def der_train_example(cfg, train, test):
                                            desc=f'Task {_incremental_time} Epoch {epoch} Training....',
                                            total=len(train_loader),
                                            ncols = 100):
-                    outputs = cl_model.backbone(inputs.to(cl_model._DEVICE))
+                    with torch.no_grad():
+                        cl_model.backbone.eval()
+                        outputs = cl_model.backbone(inputs.to(cl_model._DEVICE))
+                        cl_model.backbone.train()
                     cl_model.observe(inputs, labels)
                     cl_model.buffer_update(inputs, labels, outputs.detach())
         else:

@@ -1,0 +1,17 @@
+{
+    "CONFIGS": {
+        "dataset": "mnist",
+        "image_shape": [
+            28,
+            28
+        ],
+        "cl_type": "dil",
+        "nclasses": 10,
+        "num_increments": 5,
+        "device": "cuda",
+        "epoch": 1,
+        "batch_size": 64,
+        "buffer_batch_size": 64,
+        "buffer_memory_size": 500
+    }
+}
