@@ -7,41 +7,36 @@ from model.buffer import BUFFER
 class CL_MODEL(nn.Module):
     
     def __init__(self,
-                 nclasses,
-                 buffer_memory_size,
-                 buffer_batch_size,
-                 image_shape,
-                 _DEVICE
+                 cfg
                  ):
         super().__init__()
         
-        # 학습에 사용할 device 초기화
-        self._DEVICE = _DEVICE
+        self.device = cfg.device
+        # device for training
         
-        # 버퍼 크기로 초기화
-        # buffer 관련 연산들은 cpu에서 진행
-        self.buffer = BUFFER(buffer_memory_size = buffer_memory_size, image_shape = image_shape)
-        
-        
-        self.backbone = resnet18(nclasses = nclasses, nf = image_shape[0]).to(self._DEVICE)
-        # 그냥 임시로 class수를 정해놓음, 따로 정의 필요
-        # nf : input size의 크기(transformed input size)
-        
-        self.buffer_batch_size = buffer_batch_size
-        # minibatch + _BUFFER_BATCH = TOTAL minibatch
+        self.backbone = resnet18(nclasses = cfg.nclasses, nf = cfg.image_shape[0]).to(self.device)
+        # backbone networks, now only support resnet18
+        # you can modify to resnet34,50,101,121 from model/resnet.py
+        # nf : input size(transformed input size)
         
         self.optimizer = self.get_optimizer()
         self.loss = self.get_loss_func()
+        # optmizer & criteria
+        
+        self.current_task_index = 0
         
     def get_parameters(self):
+        
         return self.backbone.parameters()
     
-    def get_optimizer(self):
+    def get_optimizer(self): # default settings
+        
         return torch.optim.SGD(params = self.get_parameters(),
                                 lr = 1e-3,
                                 momentum = 9e-1)
     
     def get_loss_func(self):
+        
         return torch.nn.CrossEntropyLoss()
     
     def get_grads(self) -> torch.Tensor:
@@ -56,8 +51,10 @@ class CL_MODEL(nn.Module):
             grads.append(pp.grad.view(-1))
         return torch.cat(grads)
     
-    def train_with_data_loader():
-        pass
+    def train_task():
+        
+        raise NotImplementedError
     
     def eval():
-        pass
+        
+        raise NotImplementedError
