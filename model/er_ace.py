@@ -7,7 +7,9 @@ class ER_ACE(ER):
     
     def __init__(self, cfg):
         super().__init__(cfg)
-    
+
+        # self.cfg = cfg
+        
     def joint_observe(self, inputs, labels, sampled_inputs, sampled_labels):
         
         self.optimizer.zero_grad()

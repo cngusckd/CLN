@@ -11,6 +11,8 @@ class CL_MODEL(nn.Module):
                  ):
         super().__init__()
         
+        self.cfg = cfg
+        
         self.device = cfg.device
         # device for training
         
@@ -27,6 +29,8 @@ class CL_MODEL(nn.Module):
         # check current task_index for continual learning
         
         self.buffer = DefaultBuffer(cfg)
+        # Buffer for continual learning
+        
         
     def get_parameters(self):
         
@@ -34,10 +38,13 @@ class CL_MODEL(nn.Module):
     
     def get_optimizer(self): # default settings
         
-        return torch.optim.SGD(params = self.get_parameters(),
-                                lr = 1e-3,
-                                momentum = 9e-1)
-    
+        if self.cfg.optim == 'sgd':
+            return torch.optim.SGD(params = self.get_parameters(),
+                                   lr = self.cfg.lr,
+                                   momentum = self.cfg.momentum)
+        else:
+            raise NotImplementedError
+        
     def get_loss_func(self):
         
         return torch.nn.CrossEntropyLoss()

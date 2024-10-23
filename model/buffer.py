@@ -39,16 +39,9 @@ class DefaultBuffer:
         temp_list = np.arange(min(self.num_seen_examples, self.buffer_memory_size))
         index_list = np.random.choice(temp_list, min(self.num_seen_examples, len(temp_list)), replace=False)
         
-        _return_example_list = []
-        _return_label_list = []
-        for _idx in index_list:
-            _return_example_list.append(self.examples[_idx])
-            _return_label_list.append(self.labels[_idx])
-
-        _return_example_list = torch.stack(_return_example_list)
-        _return_label_list = torch.stack(_return_label_list)
+        _return_example_list = self.examples[index_list]
+        _return_label_list = self.labels[index_list]
         _return_label_list = _return_label_list.squeeze()
-
         
         return _return_example_list, _return_label_list, index_list
     
@@ -71,10 +64,10 @@ class DefaultBuffer:
     def index_store(self, input_data, input_label, index):
         
         if self.num_seen_examples < self.buffer_memory_size:
-        # 버퍼에 여유 공간이 있는 경우 샘플 추가
+            # if buffer is not full, add exemplar
             change_index = self.num_seen_examples    
         else:
-            # 버퍼가 가득 찬 경우, 전달받은 index로 수정
+            # if buffer is full, store exemplar based on index
             change_index = index
         
         self.examples[change_index] = input_data
@@ -111,8 +104,46 @@ class DarkExperienceBuffer:
         self.logits = torch.zeros((self.buffer_memory_size, cfg.nclasses), dtype = torch.float32)
         
     def extract(self):
-        raise NotImplementedError
+        
+        temp_list = np.arange(min(self.num_seen_examples, self.buffer_memory_size))
+        index_list = np.random.choice(temp_list, min(self.num_seen_examples, len(temp_list)), replace=False)
+        
+        _return_example_list = self.examples[index_list]
+        _return_label_list = self.labels[index_list]
+        _return_label_list = _return_label_list.squeeze()
+        _return_logits_list = self.logits[index_list]
 
+        return _return_example_list, _return_label_list, _return_logits_list,index_list
+
+    def store(self, input_data, input_label, input_logits):
+        self.num_seen_examples += 1
+
+        if self.num_seen_examples <= self.buffer_memory_size:
+            # if buffer is not full, add exemplar
+            self.examples[self.num_seen_examples - 1] = input_data
+            self.labels[self.num_seen_examples - 1] = input_label
+            self.logits[self.num_seen_examples - 1] = input_logits
+        else:
+            # if buffer is full, store exemplar based on reservoir sampling
+            rand_index = np.random.randint(0, self.num_seen_examples)
+            if rand_index < self.buffer_memory_size:
+                self.examples[rand_index] = input_data
+                self.labels[rand_index] = input_label
+                self.logits[rand_index] = input_logits
+    
+    def index_store(self, input_data, input_label, logit, index):
+        
+        if self.num_seen_examples < self.buffer_memory_size:
+            # if buffer is not full, add exemplar
+            change_index = self.num_seen_examples    
+        else:
+            # if buffer is full, store exemplar based on reservoir sampling
+            change_index = index
+        
+        self.examples[change_index] = input_data
+        self.labels[change_index] = input_label
+        self.logits[change_index] = logit
+        self.num_seen_examples += 1
 class BUFFER:
     '''
     메모리 버퍼

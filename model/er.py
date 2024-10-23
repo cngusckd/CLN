@@ -11,9 +11,9 @@ class ER(CL_MODEL):
     
     def __init__(self, cfg):
         super().__init__(cfg)
-        
-        self.cfg = cfg
     
+        # self.cfg = cfg
+
     def train_task(self, train_loader):
         
         if self.current_task_index == 0:

@@ -24,13 +24,9 @@ def pasre_arg():
                      help = 'epochs per task')
     cfg.add_argument('--batch_size', type = int, default = 64,
                      help = 'batch size for current data stream, when incremental learning is adoptted, \
-                         total batch size is batch_size + buffer_batch_size')
-    cfg.add_argument('--buffer_batch_size', type = int, default = 64,
-                     help = 'batch size for sampled buffer data, when incremental learning is adoptted, \
-                         total batch size is batch_size + buffer_batch_size')
+                         total batch size is batch_size + buffer_extraction_size in ER series')
     cfg.add_argument('--buffer_memory_size', type = int, default = 500,
-                     help = 'batch size for sampled buffer data, when incremental learning is adoptted, \
-                         total batch size is batch_size + buffer_batch_size')
+                     help = 'buffer size')
     
     cfg.add_argument('--model', type = str, default = 'er',
                      help = 'cl method for continual learning(not Exemplar Storage & Extraction Method)', choices = ['er', 'der', 'der++', 'er_ace'])
@@ -42,6 +38,13 @@ def pasre_arg():
                      help = 'buffer storage strategy for continual learning', choices = ['random', 'gss'])
     cfg.add_argument('--buffer_storage_size', type = int, default = 64,
                      help = 'buffer storage size for buffer update')
+    
+    cfg.add_argument('--optim', type = str, default = 'sgd',
+                     help = 'optimizer for learning', choices = ['sgd'])
+    cfg.add_argument('--lr', type = float, default = 1e-3,
+                     help = 'learning rate for optimizer')
+    cfg.add_argument('--momentum', type = float, default = 9e-1,
+                     help = 'mentum for optimizer')
     
     # check CL tasks
     temp = cfg.parse_args()
