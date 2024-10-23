@@ -37,11 +37,12 @@ class ER(CL_MODEL):
                 
                 for inputs, labels in train_loader:
                     
-                    sampled_inputs, sampled_labels, _index_list = self.extract()
                     
                     if self.cfg.buffer_extraction == 'mir':
                         self.virtual_update(inputs, labels)
                         sampled_inputs, sampled_labels, _index_list = self.mir_sampling()
+                    else:
+                        sampled_inputs, sampled_labels, _index_list = self.extract()
                     
                     self.joint_observe(inputs, labels, sampled_inputs, sampled_labels)
                     
