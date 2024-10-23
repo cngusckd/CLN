@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from model.resnet import resnet18
-from model.buffer import BUFFER
+from model.buffer import DefaultBuffer
 
 class CL_MODEL(nn.Module):
     
@@ -24,6 +24,9 @@ class CL_MODEL(nn.Module):
         # optmizer & criteria
         
         self.current_task_index = 0
+        # check current task_index for continual learning
+        
+        self.buffer = DefaultBuffer(cfg)
         
     def get_parameters(self):
         
@@ -55,6 +58,6 @@ class CL_MODEL(nn.Module):
         
         raise NotImplementedError
     
-    def eval():
+    def eval_task():
         
         raise NotImplementedError

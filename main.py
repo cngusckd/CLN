@@ -1,18 +1,6 @@
-import json
-import os
-import pytz
-
-from torchvision import transforms
 from argparse import ArgumentParser
-from datetime import datetime
 
-from model.er import er_train_example
-from model.der import der_train_example, derpp_train_example
-from model.er_ace import er_ace_train_example
-from model.gss import er_gss_train_example
-from model.mir import er_mir_train_example
-
-from data.dataloader import IncrementalMNIST, IncrementalCIFAR10, IncrementalCIFAR100
+from model.trainer import CL_Trainer
 
 def pasre_arg():
     
@@ -44,13 +32,13 @@ def pasre_arg():
                      help = 'batch size for sampled buffer data, when incremental learning is adoptted, \
                          total batch size is batch_size + buffer_batch_size')
     
-    cfg.add_argument('--model', type = str, defaut = 'er',
+    cfg.add_argument('--model', type = str, default = 'er',
                      help = 'cl method for continual learning(not Exemplar Storage & Extraction Method)', choices = ['er', 'der', 'der++', 'er_ace'])
     cfg.add_argument('--buffer_extraction', type = str, default = 'random',
                      help = 'buffer extraction strategy for continual learning', choices = ['random', 'mir'])
     cfg.add_argument('--buffer_extraction_size', type = int, default = 64,
                      help = 'buffer extraction size for buffer batch')
-    cfg.add_argument('--buffer_storage', tpye = str, default = 'rnadom',
+    cfg.add_argument('--buffer_storage', type = str, default = 'random',
                      help = 'buffer storage strategy for continual learning', choices = ['random', 'gss'])
     cfg.add_argument('--buffer_storage_size', type = int, default = 64,
                      help = 'buffer storage size for buffer update')
@@ -66,95 +54,6 @@ def pasre_arg():
 if __name__ == '__main__':
     
     cfg = pasre_arg()
+    cl_trainer = CL_Trainer(cfg)
     
-    if cfg.dataset == 'cifar10':
-        
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,))
-        ])
-        
-        cil_train = IncrementalCIFAR10(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalCIFAR10(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-    elif cfg.dataset == 'cifar100':
-        
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,))
-        ])
-        
-        cil_train = IncrementalCIFAR100(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalCIFAR100(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-    elif cfg.dataset == 'mnist':
-        transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
-            transforms.Normalize((0.5,), (0.5,))
-        ])
-        '''
-            1채널 이미지를 3채널로 복사, MNIST 학습에 사용, 
-            기반 ResNet의 input channel이 3으로 설정되어 있기 때문, 
-            1채널을 사용하기 위해서는 기반 ResNet 수정 필요
-        '''
-        
-        cfg.image_shape = [28, 28]
-        cil_train = IncrementalMNIST(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalMNIST(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-    
-    # experimental Outputs with json    
-    experimental_output = dict()
-    experimental_output['CONFIGS'] = vars(cfg)
-    local_tz = pytz.timezone('Asia/Seoul')
-    saved_dir = f'experiment_outputs_test/{datetime.now(local_tz).strftime("%Y%m%d%H%M")}'
-    os.makedirs(saved_dir, exist_ok = True)
-    with open(os.path.join(saved_dir, f'{cfg.dataset}_{cfg.cl_type}.json'), mode = 'w') as f:
-        json.dump(experimental_output, f, indent = 4)
-    
-    der_avg_acc = der_train_example(cfg, cil_train, cil_test)
-    derpp_avg_acc = derpp_train_example(cfg, cil_train, cil_test)
-    er_avg_acc = er_train_example(cfg, cil_train, cil_test)
-    er_mir_avg_acc = er_mir_train_example(cfg, cil_test, cil_test)
-    er_ace_avg_acc = er_ace_train_example(cfg, cil_train, cil_test)
-    er_gss_avg_acc = er_gss_train_example(cfg, cil_train, cil_test)
-    
-    experimental_output['ER-MIR'] = er_mir_avg_acc
-    experimental_output['ER-GSS'] = er_gss_avg_acc
-    experimental_output['ER'] = er_avg_acc
-    experimental_output['DER'] = der_avg_acc
-    experimental_output['DER++'] = derpp_avg_acc
-    experimental_output['ER-ACE'] = er_ace_avg_acc
-    
-    print(f'\n\n\n {experimental_output} \n\n\n')
-    
-    with open(os.path.join(saved_dir, f'{cfg.dataset}_{cfg.cl_type}.json'), mode = 'w') as f:
-        json.dump(experimental_output, f, indent = 4)
+    cl_trainer.begin_continual_learning()
