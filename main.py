@@ -29,7 +29,7 @@ def pasre_arg():
                      help = 'buffer size')
     
     cfg.add_argument('--model', type = str, default = 'er',
-                     help = 'cl method for continual learning(not Exemplar Storage & Extraction Method)', choices = ['er', 'der', 'der++', 'er_ace'])
+                     help = 'cl method for continual learning(not Exemplar Storage & Extraction Method)', choices = ['er', 'er_ace', 'der', 'der++'])
     cfg.add_argument('--buffer_extraction', type = str, default = 'random',
                      help = 'buffer extraction strategy for continual learning', choices = ['random', 'mir'])
     cfg.add_argument('--buffer_extraction_size', type = int, default = 64,
@@ -45,6 +45,10 @@ def pasre_arg():
                      help = 'learning rate for optimizer')
     cfg.add_argument('--momentum', type = float, default = 9e-1,
                      help = 'mentum for optimizer')
+    cfg.add_argument('--alpha', type = float, default = 1e-1,
+                     help = 'hyper parameter for knowledge distillation in DER, DER++')
+    cfg.add_argument('--beta', type = float, default = 5e-1,
+                    help = 'hyper parameter for knowledge distillation in DER++')
     
     # check CL tasks
     temp = cfg.parse_args()

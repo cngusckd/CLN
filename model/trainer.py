@@ -12,12 +12,10 @@ def build_model(cfg):
         from model.er_ace import ER_ACE
         
         return ER_ACE(cfg)
-    elif cfg.model == 'der':
-        raise NotImplementedError
-    elif cfg.model == 'der++':
-        raise NotImplementedError
-    elif cfg.model == 'er_ace':
-        raise NotImplementedError
+    elif cfg.model in ['der', 'der++']:
+        from model.der import DER
+        
+        return DER(cfg)
     else:
         raise NotImplementedError
 

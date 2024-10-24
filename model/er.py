@@ -11,8 +11,6 @@ class ER(CL_MODEL):
     
     def __init__(self, cfg):
         super().__init__(cfg)
-    
-        # self.cfg = cfg
 
     def train_task(self, train_loader):
         
@@ -21,19 +19,20 @@ class ER(CL_MODEL):
             
             pbar = tqdm(range(self.cfg.epoch), ncols = 120)
             for _epoch in pbar:
+                pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
                 
                 for inputs, labels in train_loader:
                     
                     self.observe(inputs, labels)
                     self.store(inputs, labels)
             
-                pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
             self.current_task_index += 1
         
         else:
             # incremental task
             pbar = tqdm(range(self.cfg.epoch), ncols = 120)
             for _epoch in pbar:
+                pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
                 
                 for inputs, labels in train_loader:
                     
@@ -51,7 +50,6 @@ class ER(CL_MODEL):
                     else:
                         self.store(inputs, labels)
                     
-                pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
             self.current_task_index += 1
     
     def observe(self, inputs, labels):
@@ -89,34 +87,34 @@ class ER(CL_MODEL):
         return self.buffer.extract()
     
     def mir_sampling(self):
-            # code for mir sampling
-            self.backbone.eval()
-            self.virtual_cl_model.backbone.eval()
-            temp = []
-            
-            sampled_inputs, sampled_labels, index_list = self.buffer.extract()
-            
-            with torch.no_grad():
-                for _idx, (input, label) in enumerate(zip(sampled_inputs, sampled_labels)):
-                    input, label = input.unsqueeze(0), label.unsqueeze(0)
-                    input, label = input.to(self.device), label.to(self.device)
-                    output = self.virtual_cl_model.backbone(input)
-                    loss_virtual = self.virtual_cl_model.loss(output, label)
-                    output = self.backbone(input)
-                    loss_real = self.loss(output, label)
-                    
-                    diff = loss_virtual.item() - loss_real.item()
-                    temp.append([_idx, diff])
-            
-            temp.sort(key = lambda x:x[1],reverse = True)
-            # descending order, need to extract top-k(cfg.buffer_extraction_size)
-            temp = temp[:self.cfg.buffer_extraction_size]
-            # buffer_extraction_size is defined as batch_size for joint training
-            temp = [i[0] for i in temp]
-            self.backbone.train()
-            self.virtual_cl_model = None
-            
-            return sampled_inputs[temp], sampled_labels[temp], temp
+        # code for mir sampling
+        self.backbone.eval()
+        self.virtual_cl_model.backbone.eval()
+        temp = []
+        
+        sampled_inputs, sampled_labels, index_list = self.buffer.extract()
+        
+        with torch.no_grad():
+            for _idx, (input, label) in enumerate(zip(sampled_inputs, sampled_labels)):
+                input, label = input.unsqueeze(0), label.unsqueeze(0)
+                input, label = input.to(self.device), label.to(self.device)
+                output = self.virtual_cl_model.backbone(input)
+                loss_virtual = self.virtual_cl_model.loss(output, label)
+                output = self.backbone(input)
+                loss_real = self.loss(output, label)
+                
+                diff = loss_virtual.item() - loss_real.item()
+                temp.append([_idx, diff])
+        
+        temp.sort(key = lambda x:x[1],reverse = True)
+        # descending order, need to extract top-k(cfg.buffer_extraction_size)
+        temp = temp[:self.cfg.buffer_extraction_size]
+        # buffer_extraction_size is defined as batch_size for joint training
+        temp = [i[0] for i in temp]
+        self.backbone.train()
+        self.virtual_cl_model = None
+        
+        return sampled_inputs[temp], sampled_labels[temp], temp
     
     def virtual_update(self, inputs, labels):
         # need for mir sampling
@@ -143,27 +141,19 @@ class ER(CL_MODEL):
     
     def gss_store(self, inputs, labels, sampled_inputs, sampled_labels, index_list):
         
-        # batch 통째로 gradient를 계산하는것이 아닌 하나 계산
-        # 논문의 Algorithm2 Greedy Sample Selection 참고
-        # consine sim < 0 일경우 그냥 바로 바꾸도록 수정함
-        change_index = [] # buffer의 index
-        current_index = [] # current stream의 index
-        for _index, (input, label, sampled_input, sampled_label) in enumerate(zip(inputs, labels, sampled_inputs, sampled_labels)):
-            new_gradient = self.compute_gradients(input, label)
-            gradient = self.compute_gradients(sampled_input, sampled_label)
+        # it is different with paper, calculate gradients one by one instead of across the batch
+        # see algorithm2 greedy sample selection in the paper
+        # modified to just replace directly if consine sim < 0
+        for _index, (input, label) in enumerate(zip(inputs, labels)):
+            new_gradient = self.compute_gradients(inputs[_index], labels[_index])
+            gradient = self.compute_gradients(sampled_inputs[_index], sampled_labels[_index])
             cosine_sim = self.calculate_cosine_similarity(grads1 = new_gradient,
                                                           grads2 = gradient)
             if cosine_sim < 0:
-                change_index.append(index_list[_index]) # 바꾸어야할 index 확인
-                current_index.append(_index)
-                
-        if len(change_index) >= 1:
-            for _index, (input_data, input_label) in enumerate(zip(inputs, labels)):
-                self.buffer.index_store(input_data = input_data,
-                                        input_label = input_label,
+                self.buffer.index_store(input_data = inputs[_index],
+                                        input_label = labels[_index],
                                         index = index_list[_index])
-        else:
-            pass
+    
     def compute_gradients(self, inputs, labels):
         self.backbone.eval()
         self.optimizer.zero_grad()
@@ -178,11 +168,11 @@ class ER(CL_MODEL):
         return grads   
     
     def calculate_cosine_similarity(self, grads1, grads2):
-        # 코사인 유사도를 계산하기 전에 L2 정규화를 수행합니다.
+        # L2 normalization
         grads1_norm = F.normalize(grads1, p=2, dim=1)
         grads2_norm = F.normalize(grads2, p=2, dim=1)
     
-        # 코사인 유사도 계산 (벡터 곱)
+        # calculate cosine similarity with torch.mm
         cosine_similarity = torch.mm(grads1_norm, grads2_norm.T)
     
         return cosine_similarity   

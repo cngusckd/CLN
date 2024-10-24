@@ -144,6 +144,7 @@ class DarkExperienceBuffer:
         self.labels[change_index] = input_label
         self.logits[change_index] = logit
         self.num_seen_examples += 1
+
 class BUFFER:
     '''
     메모리 버퍼
