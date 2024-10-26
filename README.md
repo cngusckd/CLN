@@ -10,7 +10,7 @@ A framework for continual learning using exemplar storage and extraction.
 - Supporting continual learning methods `er`, `er_ace`, `der`, `der++`
 - Supporting datasets `mnist`, `cifar10`, `cifar100`
 - Supporting experimental settings `cil`:class incremental learning, `dil`:domain incremental learning
-- Various exemplar(buffer) extraction and storage strategies 
+- Supporting exemplar(buffer) extraction and storage strategies 
   - exemplar extraction: `random`, `mir`
   - exemplar storage: `random`, `gss`
 
