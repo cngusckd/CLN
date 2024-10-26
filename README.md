@@ -74,7 +74,7 @@ python main.py --dataset mnist --cl_type cil --model er --buffer_extraction rand
 
 ## Contribution
 
-Hyeonchang Chu [Curriculum Vitae](http://air.cau.ac.kr/)
+Hyeonchang Chu in [AI_LAB](http://air.cau.ac.kr/)
 
 ## License
 
