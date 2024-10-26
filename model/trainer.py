@@ -120,10 +120,12 @@ class CL_Trainer:
             train_loader = self.train_loader.get_incremental_loader(task_idx)
             
             self.cl_model.train_task(train_loader)
+            # continual learning with current task
             
             for task_index, val_loader in enumerate(val_loader_list):
                 print(self.cl_model.eval_task(val_loader, task_index))
                 # evaluate model with val_loader until current task
-                
+            
+            
         
         return exp_outputs
