@@ -2,7 +2,7 @@
 
 ## Overview
 
-A framework for continual learning using exemplar storage and extraction.
+A framework for continual learning using exemplar storage and extraction.  
 `2024.10.26` : first public release
 
 ## Features
