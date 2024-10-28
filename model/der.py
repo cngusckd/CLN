@@ -15,6 +15,10 @@ class DER(CL_MODEL):
         super().__init__(cfg)
         
         self.buffer = DarkExperienceBuffer(cfg)
+        
+    def Logger(self):
+        
+        raise NotImplementedError
     
     def train_task(self, train_loader):
         
@@ -197,32 +201,3 @@ class DER(CL_MODEL):
         self.optimizer.step()
         
         return outputs.detach()
-
-    def eval_task(self, val_loader, task_index):
-    
-        temp = {}
-        
-        self.backbone.eval()
-        val_loss = 0
-        val_acc = 0
-        
-        for inputs, labels in val_loader:
-            
-            inputs, labels, = inputs.to(self.device), labels.to(self.device)
-            
-            outputs = self.backbone(inputs)
-            loss = self.loss(outputs, labels)
-            
-            val_loss += (loss.item() / len(inputs))
-            
-            pred = outputs.argmax(dim=1)
-            
-            val_acc += (pred == labels).float().sum()
-        
-        val_acc /= len(val_loader.dataset)
-        torch.cuda.empty_cache()
-        temp[f'Task_{task_index}_EVAL_ACC'] = val_acc.item()
-        temp[f'Task_{task_index}_EVAL_LOSS'] = val_loss
-        self.backbone.train()
-        
-        return temp

@@ -26,7 +26,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install pip git -y
 RUN apt-get install pip --upgrade
 RUN apt-get install tmux -y
-RUN pip install tqdm gpustat scikit-learn
+RUN pip install tqdm gpustat scikit-learn wandb
 ```
 
 ### Build Docker Image & Run Container

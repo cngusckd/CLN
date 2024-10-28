@@ -23,9 +23,11 @@ class ER(CL_MODEL):
                 
                 for inputs, labels in train_loader:
                     
-                    self.observe(inputs, labels)
+                    loss = self.observe(inputs, labels)
                     self.store(inputs, labels)
-            
+                    if self.cfg.wandb:
+                        self.wandb_train_logger(loss)
+                    
             self.current_task_index += 1
         
         else:
@@ -36,14 +38,15 @@ class ER(CL_MODEL):
                 
                 for inputs, labels in train_loader:
                     
-                    
                     if self.cfg.buffer_extraction == 'mir':
                         self.virtual_update(inputs, labels)
                         sampled_inputs, sampled_labels, _index_list = self.mir_sampling()
                     else:
                         sampled_inputs, sampled_labels, _index_list = self.extract()
                     
-                    self.joint_observe(inputs, labels, sampled_inputs, sampled_labels)
+                    loss = self.joint_observe(inputs, labels, sampled_inputs, sampled_labels)
+                    if self.cfg.wandb:
+                        self.wandb_train_logger(loss)
                     
                     if self.cfg.buffer_storage == 'gss':
                         self.gss_store(inputs, labels, sampled_inputs, sampled_labels, _index_list)
@@ -63,7 +66,7 @@ class ER(CL_MODEL):
         loss = self.loss(outputs, labels)
         loss.backward()
         self.optimizer.step()
-        
+
         return loss.item()
     
     def joint_observe(self, inputs, labels, sampled_inputs, sampled_labels):
@@ -175,33 +178,4 @@ class ER(CL_MODEL):
         # calculate cosine similarity with torch.mm
         cosine_similarity = torch.mm(grads1_norm, grads2_norm.T)
     
-        return cosine_similarity   
-    
-    def eval_task(self, val_loader, task_index):
-    
-        temp = {}
-        
-        self.backbone.eval()
-        val_loss = 0
-        val_acc = 0
-        
-        for inputs, labels in val_loader:
-            
-            inputs, labels, = inputs.to(self.device), labels.to(self.device)
-            
-            outputs = self.backbone(inputs)
-            loss = self.loss(outputs, labels)
-            
-            val_loss += (loss.item() / len(inputs))
-            
-            pred = outputs.argmax(dim=1)
-            
-            val_acc += (pred == labels).float().sum()
-        
-        val_acc /= len(val_loader.dataset)
-        torch.cuda.empty_cache()
-        temp[f'Task_{task_index}_EVAL_ACC'] = val_acc.item()
-        temp[f'Task_{task_index}_EVAL_LOSS'] = val_loss
-        self.backbone.train()
-        
-        return temp
+        return cosine_similarity

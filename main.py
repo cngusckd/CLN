@@ -1,3 +1,8 @@
+import random
+import numpy as np
+import torch
+import wandb
+
 from argparse import ArgumentParser
 
 from model.trainer import CL_Trainer
@@ -50,6 +55,12 @@ def pasre_arg():
     cfg.add_argument('--beta', type = float, default = 5e-1,
                     help = 'hyper parameter for knowledge distillation in DER++')
     
+    # set settings for researcher
+    cfg.add_argument('--seed', type = int, default = 42,
+                     help = 'seed setting for experiment')
+    cfg.add_argument('--wandb', action = 'store_true',
+                     help = 'use wandb for experiment')
+    
     # check CL tasks
     temp = cfg.parse_args()
     if temp.nclasses % temp.num_increments != 0:
@@ -58,9 +69,33 @@ def pasre_arg():
     return cfg.parse_args()
 
 
+def set_random_seed(seed):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def set_wandb(cfg):
+    
+    from datetime import datetime
+    
+    now = datetime.now()
+    if cfg.wandb:
+        wandb.init(
+            project = f'ESE_v1.1', # init wandb project name
+            name = f'{cfg.dataset}_{cfg.model}_{now.strftime("%Y-%m-%d_%H-%M-%S")}', # init wandb run name
+            config = cfg # init wandb config
+            )
+    
 if __name__ == '__main__':
     
     cfg = pasre_arg()
+    
+    set_random_seed(cfg.seed)
+    set_wandb(cfg)
+    
     cl_trainer = CL_Trainer(cfg)
     
     cl_trainer.begin_continual_learning()

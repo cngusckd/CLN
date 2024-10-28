@@ -1,3 +1,5 @@
+import wandb
+
 from torchvision import transforms
 
 from data.dataloader import *
@@ -101,8 +103,6 @@ class CL_Trainer:
         # provide ER based CL model
         # ER / DER / DER++ / ER-ACE
         
-        self.cfg = cfg
-        
     def begin_continual_learning(self):
         
         exp_outputs = []
@@ -110,9 +110,11 @@ class CL_Trainer:
         need to implement exp_outputs
         e.g.) Accuracy, AUROC, Confusion Matrix, Buffer Distribution, etc.....
         '''
+        
+        
         val_loader_list = []
         
-        for task_idx in range(self.cfg.num_increments):
+        for task_idx in range(self.cl_model.cfg.num_increments):
             
             val_loader_list.append(self.test_loader.get_incremental_loader(task_idx))
             # load test_loader until task t (current task)
@@ -122,10 +124,8 @@ class CL_Trainer:
             self.cl_model.train_task(train_loader)
             # continual learning with current task
             
-            for task_index, val_loader in enumerate(val_loader_list):
-                print(self.cl_model.eval_task(val_loader, task_index))
-                # evaluate model with val_loader until current task
-            
-            
-        
+            # evaluate model with val_loader until current task
+            val_acc, val_loss, auroc, conf_matrix = self.cl_model.eval_task(val_loader_list)
+            self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, task_idx)
+
         return exp_outputs
