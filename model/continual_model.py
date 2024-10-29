@@ -1,6 +1,8 @@
 import wandb
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from model.resnet import resnet18
 from model.buffer import DefaultBuffer
@@ -43,11 +45,21 @@ class CL_MODEL(nn.Module):
         class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength = self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
         
+        # Create a bar plot for buffer distribution
+        fig, ax = plt.subplots()
+        ax.bar(class_distribution.keys(), class_distribution.values())
+        ax.set_title(f'Task {self.current_task_index} Buffer Distribution')
+        ax.set_xlabel('Class')
+        ax.set_ylabel('Count')
+        plt.xticks(rotation=45)  # Rotate x-axis labels
+        
         # Log training metrics with wandb
         self.wandb.log({
-            f'Task_{self.current_task_index}_TRAIN_buffer_distribution' : class_distribution, # buffer distribution of iteration
-            f'Task_{self.current_task_index}_TRAIN_loss': loss, # train loss of iteration
+            f'Task_{self.current_task_index}_TRAIN_buffer_distribution': self.wandb.Image(fig),  # Log bar plot as image
+            f'Task_{self.current_task_index}_TRAIN_loss': loss,
         })
+        
+        plt.close(fig)  # Close the figure to free memory
         
         return None
     
@@ -57,14 +69,32 @@ class CL_MODEL(nn.Module):
         class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength = self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
 
+        # Create a bar plot for buffer distribution
+        fig, ax = plt.subplots()
+        ax.bar(class_distribution.keys(), class_distribution.values())
+        ax.set_title(f'Task {self.current_task_index} Evaluation Buffer Distribution')
+        ax.set_xlabel('Class')
+        ax.set_ylabel('Count')
+        plt.xticks(rotation=45)  # Rotate x-axis labels
+        
+        # Create a heatmap for confusion matrix
+        fig_cm, ax_cm = plt.subplots()
+        sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm)
+        ax_cm.set_title(f'Task {self.current_task_index} Confusion Matrix')
+        ax_cm.set_xlabel('Predicted')
+        ax_cm.set_ylabel('True')
+        
         # Log evaluation metrics with wandb
         self.wandb.log({
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_buffer_distribution' : class_distribution, # buffer distribution of task_idx with current_task_index
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_acc': val_acc, # accuracy of task_idx with current_task_index
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_loss': val_loss, # loss of task_idx with current_task_index
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_auroc': auroc, # auroc of task_idx with current_task_index
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_conf_matrix': conf_matrix # confusion matrix of task_idx with current_task_index
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_buffer_distribution': self.wandb.Image(fig),  # Log bar plot as image
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_acc': val_acc,
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_loss': val_loss,
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_auroc': auroc,
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_conf_matrix': self.wandb.Image(fig_cm)  # Log confusion matrix as image
         })
+        
+        plt.close(fig)  # Close the figure to free memory
+        plt.close(fig_cm)  # Close the confusion matrix figure to free memory
         
         return None
     

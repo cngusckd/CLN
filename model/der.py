@@ -31,8 +31,10 @@ class DER(CL_MODEL):
                 
                 for inputs, labels in train_loader:
                     
-                    logits = self.observe(inputs, labels) # return output logit
+                    loss, logits = self.observe(inputs, labels) # return output logit
                     self.store(inputs, labels, logits)
+                    if self.cfg.wandb:
+                        self.wandb_train_logger(loss)
                     
             self.current_task_index += 1
             
@@ -51,12 +53,15 @@ class DER(CL_MODEL):
                     else:
                         sampled_inputs, sampled_labels, sampled_logits, _index_list = self.extract()
                     
-                    logits = self.joint_observe(inputs, labels, sampled_inputs, sampled_labels, sampled_logits)
+                    loss, logits = self.joint_observe(inputs, labels, sampled_inputs, sampled_labels, sampled_logits)
                     
                     if self.cfg.buffer_storage == 'gss':
                         self.gss_store(inputs, labels, logits, sampled_inputs, sampled_labels, _index_list)
                     else:
                         self.store(inputs, labels, logits)
+                        
+                    if self.cfg.wandb:
+                        self.wandb_train_logger(loss)
                         
             self.current_task_index += 1
             
@@ -72,7 +77,7 @@ class DER(CL_MODEL):
         loss.backward()
         self.optimizer.step()
         
-        return outputs.detach()
+        return loss.item(), outputs.detach()
     
     def store(self, inputs, labels, logits):
         
@@ -200,4 +205,4 @@ class DER(CL_MODEL):
         loss.backward()
         self.optimizer.step()
         
-        return outputs.detach()
+        return loss.item(), outputs.detach()
