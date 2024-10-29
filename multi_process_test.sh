@@ -18,8 +18,9 @@ for combination in itertools.product(datasets, cl_types, models, buffer_extracti
 END
 )
 
-# Iterate over each generated combination
-while IFS= read -r combo; do
+# Function to run a single combination
+run_combination() {
+  combo=$1
   # Split the combination string into individual variables
   set -- $combo
   dataset=$1
@@ -33,4 +34,10 @@ while IFS= read -r combo; do
 
   # Execute the main.py script with the current configuration
   python main.py --wandb --dataset $dataset --epoch 2 --cl_type $cl_type --model $model --buffer_extraction $buffer_extraction --buffer_storage $buffer_storage
-done <<< "$combinations"
+}
+
+# Export the function so it can be used by xargs
+export -f run_combination
+
+# Iterate over each generated combination and run them in parallel
+echo "$combinations" | xargs -n 1 -P 5 -I {} bash -c 'run_combination "$@"' _ {}

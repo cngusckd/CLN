@@ -102,7 +102,10 @@ class DarkExperienceBuffer:
         self.examples = torch.zeros((self.buffer_memory_size, 3, self.image_shape[0], self.image_shape[1]), dtype = torch.float32)
         self.labels = torch.zeros((self.buffer_memory_size, 1), dtype = torch.int64)
         self.logits = torch.zeros((self.buffer_memory_size, cfg.nclasses), dtype = torch.float32)
-        
+    
+    def __len__(self):
+        return min(self.num_seen_examples, self.buffer_memory_size)
+       
     def extract(self):
         
         temp_list = np.arange(min(self.num_seen_examples, self.buffer_memory_size))

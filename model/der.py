@@ -15,10 +15,6 @@ class DER(CL_MODEL):
         super().__init__(cfg)
         
         self.buffer = DarkExperienceBuffer(cfg)
-        
-    def Logger(self):
-        
-        raise NotImplementedError
     
     def train_task(self, train_loader):
         

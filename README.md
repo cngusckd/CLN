@@ -1,5 +1,18 @@
 # ESE : Exemplar Storage & Extraction frameworks for Continual Learning
 
+## Introduction
+
+Continual learning, also known as lifelong learning, is a paradigm in machine learning where models are trained to learn continuously from a stream of data. Unlike traditional learning methods that assume all data is available at once, continual learning models must adapt to new information while retaining previously learned knowledge. This approach is crucial for developing intelligent systems that can evolve and improve over time, similar to human learning.
+
+In continual learning, one of the main challenges is overcoming catastrophic forgetting, where the model forgets previously learned information upon learning new tasks. To address this, various strategies such as exemplar storage and extraction are employed. These strategies help in maintaining a balance between learning new information and retaining old knowledge.
+
+For those interested in exploring this field further, the following papers provide a comprehensive overview and insights into continual learning:
+- [Continual Learning: A Comprehensive Review](https://arxiv.org/abs/1802.07569)
+- [Overcoming Catastrophic Forgetting in Neural Networks](https://arxiv.org/abs/1612.00796)
+- [Gdumb: A Simple Approach that Questions Our Progress in Continual Learning](https://arxiv.org/abs/1910.07104)
+- [iCaRL: Incremental Classifier and Representation Learning](https://arxiv.org/abs/1611.07725)
+- [On Tiny Episodic Memories in Continual Learning](https://arxiv.org/abs/1902.10486)
+
 ## Overview
 
 A framework for continual learning using exemplar storage and extraction.  
@@ -26,7 +39,7 @@ RUN apt-get update && apt-get upgrade -y
 RUN apt-get install pip git -y
 RUN apt-get install pip --upgrade
 RUN apt-get install tmux -y
-RUN pip install tqdm gpustat scikit-learn wandb
+RUN pip install tqdm gpustat scikit-learn wandb matplotlib  seaborn
 ```
 
 ### Build Docker Image & Run Container
@@ -71,6 +84,52 @@ python main.py --dataset mnist --cl_type cil --model er --buffer_extraction rand
 - `model/er,er_ace,der`: Implements each continual learning method.
 - `model/buffer.py`: Implements buffer for exemplar storage and extraction.
 - `data/dataloader.py`: Implements data loader for incremental learning.
+
+## Integrating Weights & Biases (wandb)
+
+`wandb` is a tool for experiment tracking, model optimization, and dataset versioning. Follow these steps to integrate `wandb` with your experiments:
+
+### Step 1: Set Up `wandb` from Bash
+
+1. **Create a `wandb` Account**:
+   - Visit [wandb.ai](https://wandb.ai) and sign up for a free account.
+
+2. **Install `wandb`**:
+   - If not already installed, run the following command in your terminal:
+     ```bash
+     pip install wandb
+     ```
+
+3. **Login to `wandb`**:
+   - In your terminal, execute:
+     ```bash
+     wandb login
+     ```
+   - This will prompt you to enter an API key. You can find your API key in your `wandb` account settings under the "API Keys" section.
+
+
+### Step 2: Run Your Experiment
+
+Run your script with the `--wandb` flag to enable logging:
+
+```bash
+python main.py --dataset mnist --cl_type cil --model er --buffer_extraction random --buffer_storage random --wandb
+```
+
+### Step 3: Monitor Your Experiments
+
+1. **Access the `wandb` Dashboard**:
+   - Log in to your `wandb` account and navigate to the dashboard. You can do this by visiting [wandb.ai](https://wandb.ai) and clicking on your project.
+
+2. **Explore Your Runs**:
+   - In the dashboard, you will see a list of your runs. Click on a run to view detailed metrics, logs, and visualizations.
+
+3. **Visualize Metrics**:
+   - Use the interactive plots to visualize metrics such as loss, accuracy, AUROC, and more. You can customize these plots to compare different runs or focus on specific metrics.
+
+4. **Analyze Images and Graphs**:
+   - View logged images, such as confusion matrices and ROC curves, directly in the dashboard. This helps in understanding model performance visually.
+
 
 ## Contribution
 

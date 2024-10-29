@@ -22,70 +22,35 @@ def build_model(cfg):
         raise NotImplementedError
 
 def build_data(cfg):
-    
     if cfg.dataset == 'cifar10':
-        
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
-        
-        cil_train = IncrementalCIFAR10(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalCIFAR10(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
+        cil_train = IncrementalCIFAR10(cfg, root='./data', train=True, transform=transform)
+        cil_test = IncrementalCIFAR10(cfg, root='./data', train=False, transform=transform)
     elif cfg.dataset == 'cifar100':
-        
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
-        
-        cil_train = IncrementalCIFAR100(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalCIFAR100(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
+        cil_train = IncrementalCIFAR100(cfg, root='./data', train=True, transform=transform)
+        cil_test = IncrementalCIFAR100(cfg, root='./data', train=False, transform=transform)
     elif cfg.dataset == 'mnist':
+        cfg.image_shape = (28,28) # for mnist, the image shape is 28x28
         transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
+            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),  # Convert 1-channel image to 3-channel
             transforms.Normalize((0.5,), (0.5,))
         ])
         '''
-            1채널 이미지를 3채널로 복사, MNIST 학습에 사용, 
-            기반 ResNet의 input channel이 3으로 설정되어 있기 때문, 
-            1채널을 사용하기 위해서는 기반 ResNet 수정 필요
+        The MNIST dataset is originally in 1-channel (grayscale).
+        To use it with models like ResNet, which expect 3-channel input,
+        we replicate the single channel three times.
+        This allows the model to process MNIST images without modifying the network architecture.
         '''
-        
-        cfg.image_shape = [28, 28]
-        cil_train = IncrementalMNIST(root = './data',
-                                           train = True,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
-        cil_test = IncrementalMNIST(root = './data',
-                                           train = False,
-                                           transform = transform,
-                                           num_increments = cfg.num_increments,
-                                           batch_size = cfg.batch_size,
-                                           increment_type = cfg.cl_type)
+        cil_train = IncrementalMNIST(cfg, root='./data', train=True, transform=transform)
+        cil_test = IncrementalMNIST(cfg, root='./data', train=False, transform=transform)
     else:
         raise NotImplementedError
     
@@ -109,8 +74,7 @@ class CL_Trainer:
         '''
         need to implement exp_outputs
         e.g.) Accuracy, AUROC, Confusion Matrix, Buffer Distribution, etc.....
-        '''
-        
+        '''        
         
         val_loader_list = []
         
@@ -125,7 +89,7 @@ class CL_Trainer:
             # continual learning with current task
             
             # evaluate model with val_loader until current task
-            val_acc, val_loss, auroc, conf_matrix = self.cl_model.eval_task(val_loader_list)
-            self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, task_idx)
+            val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs = self.cl_model.eval_task(val_loader_list)
+            self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs, task_idx)
 
         return exp_outputs

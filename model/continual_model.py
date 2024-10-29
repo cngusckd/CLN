@@ -3,132 +3,119 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import seaborn as sns
+import numpy as np
+from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
 
 from model.resnet import resnet18
 from model.buffer import DefaultBuffer
 
-from sklearn.metrics import confusion_matrix, roc_auc_score
-
 class CL_MODEL(nn.Module):
     
-    def __init__(self,
-                 cfg
-                 ):
+    def __init__(self, cfg):
         super().__init__()
         
-        
         self.cfg = cfg
-        
         self.device = cfg.device
-        # device for training
-        
-        self.backbone = resnet18(nclasses = cfg.nclasses, nf = cfg.image_shape[0]).to(self.device)
-        # backbone networks, now only support resnet18
-        # you can modify to resnet34,50,101,121 from model/resnet.py
-        # nf : input size(transformed input size)
-        
+        self.backbone = resnet18(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
         self.optimizer = self.get_optimizer()
         self.loss = self.get_loss_func()
-        # optmizer & criteria
-        
         self.current_task_index = 0
-        # check current task_index for continual learning
-        
         self.buffer = DefaultBuffer(cfg)
-        # Buffer for continual learning
-        
         self.wandb = wandb
     
     def wandb_train_logger(self, loss):
-        
-        # Calculate buffer distribution in buffer
-        class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength = self.cfg.nclasses)
+        class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength=self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
         
-        # Create a bar plot for buffer distribution
         fig, ax = plt.subplots()
         ax.bar(class_distribution.keys(), class_distribution.values())
         ax.set_title(f'Task {self.current_task_index} Buffer Distribution')
         ax.set_xlabel('Class')
         ax.set_ylabel('Count')
-        plt.xticks(rotation=45)  # Rotate x-axis labels
+        plt.xticks(rotation=45)
         
-        # Log training metrics with wandb
         self.wandb.log({
-            f'Task_{self.current_task_index}_TRAIN_buffer_distribution': self.wandb.Image(fig),  # Log bar plot as image
+            f'Task_{self.current_task_index}_TRAIN_buffer_distribution': self.wandb.Image(fig),
             f'Task_{self.current_task_index}_TRAIN_loss': loss,
         })
         
-        plt.close(fig)  # Close the figure to free memory
-        
-        return None
+        plt.close(fig)
     
-    def wandb_eval_logger(self, val_acc, val_loss, auroc, conf_matrix, task_idx):
-        
-        # Calculate buffer distribution in buffer
-        class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength = self.cfg.nclasses)
+    def wandb_eval_logger(self, val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs, task_idx):
+        class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength=self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
 
-        # Create a bar plot for buffer distribution
         fig, ax = plt.subplots()
         ax.bar(class_distribution.keys(), class_distribution.values())
         ax.set_title(f'Task {self.current_task_index} Evaluation Buffer Distribution')
         ax.set_xlabel('Class')
         ax.set_ylabel('Count')
-        plt.xticks(rotation=45)  # Rotate x-axis labels
+        plt.xticks(rotation=45)
         
-        # Create a heatmap for confusion matrix
         fig_cm, ax_cm = plt.subplots()
         sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm)
         ax_cm.set_title(f'Task {self.current_task_index} Confusion Matrix')
         ax_cm.set_xlabel('Predicted')
         ax_cm.set_ylabel('True')
         
-        # Log evaluation metrics with wandb
+        # Convert all_probs and all_labels to NumPy arrays
+        all_probs = np.array(all_probs)
+        all_labels = np.array(all_labels)
+        
+        # Create ROC curve plot for each class
+        fig_roc, ax_roc = plt.subplots()
+        for i in range(self.cfg.nclasses):
+            fpr, tpr, _ = roc_curve(all_labels, all_probs[:, i], pos_label=i)
+            # Ensure all_labels == i is a boolean array
+            binary_labels = (all_labels == i).astype(int)
+            
+            # Check if there are at least two classes present
+            if len(np.unique(binary_labels)) > 1:
+                auroc_score = roc_auc_score(binary_labels, all_probs[:, i])
+                ax_roc.plot(fpr, tpr, label=f'Class {i} AUROC = {auroc_score:.2f}')
+            else:
+                ax_roc.plot(fpr, tpr, label=f'Class {i} AUROC = N/A (single class)')
+
+        ax_roc.plot([0, 1], [0, 1], 'k--')
+        ax_roc.set_title(f'Task {self.current_task_index} ROC Curve')
+        ax_roc.set_xlabel('False Positive Rate')
+        ax_roc.set_ylabel('True Positive Rate')
+        ax_roc.legend(loc='lower right')
+        
         self.wandb.log({
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_buffer_distribution': self.wandb.Image(fig),  # Log bar plot as image
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_buffer_distribution': self.wandb.Image(fig),
             f'Task_{self.current_task_index}_about_{task_idx}_EVAL_acc': val_acc,
             f'Task_{self.current_task_index}_about_{task_idx}_EVAL_loss': val_loss,
             f'Task_{self.current_task_index}_about_{task_idx}_EVAL_auroc': auroc,
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_conf_matrix': self.wandb.Image(fig_cm)  # Log confusion matrix as image
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_conf_matrix': self.wandb.Image(fig_cm),
+            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_roc_curve': self.wandb.Image(fig_roc)  # Log ROC curve as image
         })
         
-        plt.close(fig)  # Close the figure to free memory
-        plt.close(fig_cm)  # Close the confusion matrix figure to free memory
-        
-        return None
+        plt.close(fig)
+        plt.close(fig_cm)
+        plt.close(fig_roc)
     
     def get_parameters(self):
-        
         return self.backbone.parameters()
     
-    def get_optimizer(self): # default settings
-        
+    def get_optimizer(self):
         if self.cfg.optim == 'sgd':
-            return torch.optim.SGD(params = self.get_parameters(),
-                                   lr = self.cfg.lr,
-                                   momentum = self.cfg.momentum)
+            return torch.optim.SGD(params=self.get_parameters(),
+                                   lr=self.cfg.lr,
+                                   momentum=self.cfg.momentum)
         else:
             raise NotImplementedError
         
     def get_loss_func(self):
-        
         return torch.nn.CrossEntropyLoss()
     
     def get_grads(self) -> torch.Tensor:
-        """
-        Returns all the gradients concatenated in a single tensor.
-
-        Returns:
-            gradients tensor
-        """
         grads = []
         for pp in list(self.backbone.parameters()):
             grads.append(pp.grad.view(-1))
         return torch.cat(grads)
     
-    def train_task():
-        
+    def train_task(self):
         raise NotImplementedError
     
     def eval_task(self, val_loader_list):
@@ -137,7 +124,7 @@ class CL_MODEL(nn.Module):
         val_acc = 0
         all_preds = []
         all_labels = []
-        all_probs = []  # Added: List to store softmax probabilities for all batches
+        all_probs = []
         
         for val_loader in val_loader_list:
             for inputs, labels in val_loader:
@@ -153,21 +140,19 @@ class CL_MODEL(nn.Module):
             
                 all_preds.extend(pred.cpu().numpy())
                 all_labels.extend(labels.cpu().numpy())
-                all_probs.extend(outputs.softmax(dim=1).detach().cpu().numpy())  # Use detach() before numpy()
+                all_probs.extend(outputs.softmax(dim=1).detach().cpu().numpy())
         
         total_val_len = sum([len(val_loader.dataset) for val_loader in val_loader_list])
         val_acc /= total_val_len
         torch.cuda.empty_cache()
         
-        # Calculate confusion matrix
         conf_matrix = confusion_matrix(all_labels, all_preds)
         
-        # Calculate AUROC
         try:
             auroc = roc_auc_score(all_labels, all_probs, multi_class='ovr')
         except ValueError:
-            auroc = None  # Handle case where AUROC cannot be computed
+            auroc = None
         
         self.backbone.train()
         
-        return val_acc.item(), val_loss, auroc, conf_matrix
+        return val_acc.item(), val_loss, auroc, conf_matrix, all_labels, all_probs

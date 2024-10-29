@@ -60,6 +60,10 @@ def pasre_arg():
                      help = 'seed setting for experiment')
     cfg.add_argument('--wandb', action = 'store_true',
                      help = 'use wandb for experiment')
+    cfg.add_argument('--num_workers', type = int, default = 4,
+                     help = 'number of workers for DataLoader')
+    cfg.add_argument('--pin_memory', action = 'store_true',
+                     help = 'use pinned memory for DataLoader')
     
     # check CL tasks
     temp = cfg.parse_args()
