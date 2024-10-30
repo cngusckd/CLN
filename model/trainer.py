@@ -59,8 +59,8 @@ def build_data(cfg):
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
-        cil_train = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', train=True, transform=transform)
-        cil_test = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', train=False, transform=transform)
+        cil_train = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', transform = transform, train=True)
+        cil_test = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', transform = transform, train=False)
     else:
         raise NotImplementedError
     

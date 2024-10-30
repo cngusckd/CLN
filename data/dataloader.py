@@ -207,26 +207,22 @@ class IncrementalCIFAR100(CIFAR100):
         return self.incremental_loaders[increment_index]
 
 class CustomDataloader:
-    def __init__(self, root='./data/tiny_imagenet/tiny-imagenet-200', batch_size=32, num_workers=4, pin_memory=True):
+    def __init__(self, root='./data/tiny_imagenet/tiny-imagenet-200', batch_size=32, transform = transforms, num_workers=4, pin_memory=True):
         self.root = root
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.pin_memory = pin_memory
 
         # Define the transform
-        self.transform = transforms.Compose([
-            transforms.Resize((64, 64)),  # Resize images to 64x64
-            transforms.ToTensor(),
-            transforms.Normalize((0.5,), (0.5,))
-        ])
+        self.transform = transform
 
         # Create datasets
-        self.train_dataset = ImageFolder(root=os.path.join(self.root, 'train'), transform=self.transform)
-        self.val_dataset = ImageFolder(root=os.path.join(self.root, 'val'), transform=self.transform)
+        self.train_dataset = ImageFolder(root=os.path.join(self.root, 'train'), transform = self.transform)
+        self.val_dataset = ImageFolder(root=os.path.join(self.root, 'val'), transform = self.transform)
 
 class IncrementalCustomDataloader(CustomDataloader):
-    def __init__(self, cfg, root='./data/tiny_imagenet/tiny-imagenet-200', train=True):
-        super().__init__(root=root, batch_size=cfg.batch_size, num_workers=cfg.num_workers, pin_memory=cfg.pin_memory)
+    def __init__(self, cfg, root='./data/tiny_imagenet/tiny-imagenet-200', transform = transforms, train=True):
+        super().__init__(root=root, batch_size=cfg.batch_size, transform = transform, num_workers=cfg.num_workers, pin_memory=cfg.pin_memory)
         
         self.cfg = cfg
         self.num_increments = cfg.num_increments
