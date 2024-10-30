@@ -15,7 +15,7 @@ For those interested in exploring this field further, the following papers provi
 
 ## Timeline for versions
  
-`2024.10.26` : first public release
+`v1.1` : first public release (`2024.10.30` )
 
 ## Features
 
