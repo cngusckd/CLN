@@ -22,6 +22,7 @@ For those interested in exploring this field further, the following papers provi
 - Supporting continual learning methods `er`, `er_ace`, `der`, `der++`
 - Supporting datasets `mnist`, `cifar10`, `cifar100`
 - Supporting experimental settings `cil`:class incremental learning, `dil`:domain incremental learning
+- Supporting backbone models `resnet18`, `resnet34`, `resnet50`
 - Supporting exemplar(buffer) extraction and storage strategies 
   - exemplar extraction: `random`, `mir`
   - exemplar storage: `random`, `gss`
@@ -129,6 +130,78 @@ python main.py --dataset mnist --cl_type cil --model er --buffer_extraction rand
 4. **Analyze Images and Graphs**:
    - View logged images, such as confusion matrices and ROC curves, directly in the dashboard. This helps in understanding model performance visually.
 
+## Using IncrementalCustomDataloader
+
+The framework supports Incremental Learning for custom datasets like Tiny ImageNet using the `IncrementalCustomDataloader` class. This allows you to load datasets incrementally by class or domain.
+
+### Preparing the Tiny ImageNet Dataset
+
+First, use the `make_tiny_image.sh` script to download and prepare the Tiny ImageNet dataset.
+
+### Directory Structure
+
+After running the script, the Tiny ImageNet dataset will be organized as follows:
+
+```
+data/
+└── tiny_imagenet/
+└── tiny-imagenet-200/
+├── train/
+│ ├── n01443537/
+│ │ ├── images/
+│ │ └── ...
+│ ├── n01629819/
+│ │ ├── images/
+│ │ └── ...
+│ └── ...
+└── val/
+├── n01443537/
+│ ├── images/
+│ └── ...
+├── n01629819/
+│ ├── images/
+│ └── ...
+└── ...
+```
+
+### Details for Custom Dataset
+
+The structure of the custom dataset is organized such that each folder represents a class, and the images within each folder correspond to that specific class. This means that the dataset is divided into multiple folders, where each folder contains images belonging to a particular class.
+
+For example, if you have a dataset with classes such as 'cat', 'dog', and 'bird', the directory structure would look like this:
+
+```
+data/
+└── custom_dataset/
+    ├── train/
+    │   ├── cat/
+    │   │   ├── image1.jpg
+    │   │   ├── image2.jpg
+    │   │   └── ...
+    │   ├── dog/
+    │   │   ├── image1.jpg
+    │   │   ├── image2.jpg
+    │   │   └── ...
+    │   └── bird/
+    │       ├── image1.jpg
+    │       ├── image2.jpg
+    │       └── ...
+    └── val/
+        ├── cat/
+        │   ├── image1.jpg
+        │   ├── image2.jpg
+        │   └── ...
+        ├── dog/
+        │   ├── image1.jpg
+        │   ├── image2.jpg
+        │   └── ...
+        └── bird/
+            ├── image1.jpg
+            ├── image2.jpg
+            └── ...
+```
+
+This structure allows the framework to easily load and process images for each class during training and validation.
 
 ## Testing Framework with Shell Scripts
 

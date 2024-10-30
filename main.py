@@ -33,6 +33,8 @@ def pasre_arg():
     cfg.add_argument('--buffer_memory_size', type = int, default = 500,
                      help = 'buffer size')
     
+    cfg.add_argument('--backbone', type=str, default='resnet18',
+                     help='backbone model for training', choices=['resnet18', 'resnet34', 'resnet50'])
     cfg.add_argument('--model', type = str, default = 'er',
                      help = 'cl method for continual learning(not Exemplar Storage & Extraction Method)', choices = ['er', 'er_ace', 'der', 'der++'])
     cfg.add_argument('--buffer_extraction', type = str, default = 'random',
