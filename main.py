@@ -14,7 +14,7 @@ def pasre_arg():
     
     # CL Experiments Settings
     cfg.add_argument('--dataset', type = str, default = 'mnist',
-                     help = 'experiment dataset', choices = ['mnist', 'cifar10', 'cifar100'])
+                     help = 'experiment dataset', choices = ['mnist', 'cifar10', 'cifar100', 'tiny_imagenet'])
     cfg.add_argument('--image_shape', type = set, default = (32,32),
                      help = 'image_shpae of dataset')
     cfg.add_argument('--cl_type', type = str, default = 'cil',

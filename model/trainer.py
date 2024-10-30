@@ -51,6 +51,16 @@ def build_data(cfg):
         '''
         cil_train = IncrementalMNIST(cfg, root='./data', train=True, transform=transform)
         cil_test = IncrementalMNIST(cfg, root='./data', train=False, transform=transform)
+    elif cfg.dataset == 'tiny_imagenet':
+        cfg.image_shape = (64, 64)
+        cfg.nclasses = 200
+        transform = transforms.Compose([
+            transforms.Resize((cfg.image_shape[0], cfg.image_shape[1])),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        cil_train = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', train=True, transform=transform)
+        cil_test = IncrementalCustomDataloader(cfg, root='./data/tiny_imagenet/tiny-imagenet-200', train=False, transform=transform)
     else:
         raise NotImplementedError
     

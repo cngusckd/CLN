@@ -3,3 +3,4 @@ data/*
 experiment_outputs/*
 experiment_outputs_test/*
 wandb/
+model/__pycache__/

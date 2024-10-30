@@ -37,8 +37,8 @@ RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
 RUN apt-get update && apt-get upgrade -y
 RUN apt-get install pip git -y
 RUN apt-get install pip --upgrade
-RUN apt-get install tmux -y
-RUN pip install tqdm gpustat scikit-learn wandb matplotlib  seaborn
+RUN apt-get install tmux wget unzip tree -y
+RUN pip install tqdm gpustat scikit-learn wandb matplotlib seaborn
 ```
 
 ### Build Docker Image & Run Container
