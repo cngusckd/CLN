@@ -13,9 +13,8 @@ For those interested in exploring this field further, the following papers provi
 - [iCaRL: Incremental Classifier and Representation Learning](https://arxiv.org/abs/1611.07725)
 - [On Tiny Episodic Memories in Continual Learning](https://arxiv.org/abs/1902.10486)
 
-## Overview
-
-A framework for continual learning using exemplar storage and extraction.  
+## Timeline for versions
+ 
 `2024.10.26` : first public release
 
 ## Features
@@ -129,6 +128,31 @@ python main.py --dataset mnist --cl_type cil --model er --buffer_extraction rand
 
 4. **Analyze Images and Graphs**:
    - View logged images, such as confusion matrices and ROC curves, directly in the dashboard. This helps in understanding model performance visually.
+
+
+## Testing Framework with Shell Scripts
+
+To automate the testing of our continual learning framework with different configurations, we provide two shell scripts: `test.sh` and `multi_process_test.sh`.
+
+### `test.sh`
+This script tests the framework by iterating over all possible combinations of configuration options sequentially. It generates combinations of dataset, continual learning type, model, buffer extraction strategy, and buffer storage strategy, and then runs the `main.py` script with each combination.
+
+```bash
+# Example usage
+bash test.sh
+```
+
+### `multi_process_test.sh`
+This script performs the same task as `test.sh`, but executes multiple combinations in parallel to speed up the testing process. It utilizes `xargs` to run multiple processes concurrently.
+
+```bash
+# Example usage
+bash multi_process_test.sh
+```
+
+- **Key Features**:
+  - Uses Python to generate all possible combinations of configuration options.
+  - Supports parallel execution with up to 5 processes.
 
 
 ## Contribution

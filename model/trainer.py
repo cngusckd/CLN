@@ -90,6 +90,7 @@ class CL_Trainer:
             
             # evaluate model with val_loader until current task
             val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs = self.cl_model.eval_task(val_loader_list)
-            self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs, task_idx)
+            if self.cl_model.cfg.wandb:
+                self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs, task_idx)
 
         return exp_outputs

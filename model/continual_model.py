@@ -4,6 +4,8 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+import copy
+
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
 
 from model.resnet import resnet18
@@ -22,6 +24,21 @@ class CL_MODEL(nn.Module):
         self.current_task_index = 0
         self.buffer = DefaultBuffer(cfg)
         self.wandb = wandb
+    
+    def __deepcopy__(self, memo):
+        # Create a shallow copy of the object without deepcopying problematic modules
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+
+        # Copy the attributes manually
+        for k, v in self.__dict__.items():
+            if k in ['wandb', 'optimizer', 'loss']:  # Exclude these attributes
+                setattr(result, k, v)
+            else:
+                setattr(result, k, copy.deepcopy(v, memo))
+        
+        return result
     
     def wandb_train_logger(self, loss):
         class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength=self.cfg.nclasses)
@@ -64,7 +81,7 @@ class CL_MODEL(nn.Module):
         
         # Create ROC curve plot for each class
         fig_roc, ax_roc = plt.subplots()
-        for i in range(self.cfg.nclasses):
+        for i in range(self.current_task_index * (self.cfg.nclasses // self.cfg.num_increments)):
             fpr, tpr, _ = roc_curve(all_labels, all_probs[:, i], pos_label=i)
             # Ensure all_labels == i is a boolean array
             binary_labels = (all_labels == i).astype(int)

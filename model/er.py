@@ -21,11 +21,12 @@ class ER(CL_MODEL):
             for _epoch in pbar:
                 pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
                 
-                for inputs, labels in train_loader:
+                for iteration, (inputs, labels) in enumerate(train_loader):
                     
                     loss = self.observe(inputs, labels)
                     self.store(inputs, labels)
-                    if self.cfg.wandb:
+                    # Log every 10 iterations
+                    if self.cfg.wandb and iteration % 10 == 0:
                         self.wandb_train_logger(loss)
                     
             self.current_task_index += 1
@@ -36,7 +37,7 @@ class ER(CL_MODEL):
             for _epoch in pbar:
                 pbar.set_description(f'Task {self.current_task_index} training... / epoch : {_epoch}')
                 
-                for inputs, labels in train_loader:
+                for iteration, (inputs, labels) in enumerate(train_loader):
                     
                     if self.cfg.buffer_extraction == 'mir':
                         self.virtual_update(inputs, labels)
@@ -45,7 +46,8 @@ class ER(CL_MODEL):
                         sampled_inputs, sampled_labels, _index_list = self.extract()
                     
                     loss = self.joint_observe(inputs, labels, sampled_inputs, sampled_labels)
-                    if self.cfg.wandb:
+                    # Log every 10 iterations
+                    if self.cfg.wandb and iteration % 10 == 0:
                         self.wandb_train_logger(loss)
                     
                     if self.cfg.buffer_storage == 'gss':
