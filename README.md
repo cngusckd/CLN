@@ -20,7 +20,7 @@ For those interested in exploring this field further, the following papers provi
 ## Features
 
 - Supporting continual learning methods `er`, `er_ace`, `der`, `der++`
-- Supporting datasets `mnist`, `cifar10`, `cifar100`
+- Supporting datasets `mnist`, `cifar10`, `cifar100`, `custom_dataset`
 - Supporting experimental settings `cil`:class incremental learning, `dil`:domain incremental learning
 - Supporting backbone models `resnet18`, `resnet34`, `resnet50`
 - Supporting exemplar(buffer) extraction and storage strategies 
@@ -164,9 +164,19 @@ data/
 └── ...
 ```
 
+### Example Configuration for Tiny ImageNet
+
+When using the Tiny ImageNet dataset, you need to specify the `image_shape` and `nclasses` options. Below is an example of how to use Tiny ImageNet:
+
+```
+python main.py --dataset custom_dataset --image_shape "64 64" --nclasses 200
+```
+
 ### Details for Custom Dataset
 
 The structure of the custom dataset is organized such that each folder represents a class, and the images within each folder correspond to that specific class. This means that the dataset is divided into multiple folders, where each folder contains images belonging to a particular class.
+
+
 
 For example, if you have a dataset with classes such as 'cat', 'dog', and 'bird', the directory structure would look like this:
 

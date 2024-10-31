@@ -51,9 +51,7 @@ def build_data(cfg):
         '''
         cil_train = IncrementalMNIST(cfg, root='./data', train=True, transform=transform)
         cil_test = IncrementalMNIST(cfg, root='./data', train=False, transform=transform)
-    elif cfg.dataset == 'tiny_imagenet':
-        cfg.image_shape = (64, 64)
-        cfg.nclasses = 200
+    elif cfg.dataset == 'custom_dataset':
         transform = transforms.Compose([
             transforms.Resize((cfg.image_shape[0], cfg.image_shape[1])),
             transforms.ToTensor(),
