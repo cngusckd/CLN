@@ -134,7 +134,7 @@ python main.py --dataset mnist --cl_type cil --model er --buffer_extraction rand
 
 The framework supports Incremental Learning for custom datasets like Tiny ImageNet using the `IncrementalCustomDataloader` class. This allows you to load datasets incrementally by class or domain.
 
-### Preparing the Tiny ImageNet Dataset
+### Preparing the Tiny ImageNet Dataset for IncrementalCustomDataloader
 
 First, use the `make_tiny_image.sh` script to download and prepare the Tiny ImageNet dataset.
 
@@ -172,10 +172,9 @@ When using the Tiny ImageNet dataset, you need to specify the `image_shape` and 
 python main.py --dataset custom_dataset --image_shape "64 64" --nclasses 200
 ```
 
-### Details for Custom Dataset
+### Details for IncrementalCustomDataloader
 
 The structure of the custom dataset is organized such that each folder represents a class, and the images within each folder correspond to that specific class. This means that the dataset is divided into multiple folders, where each folder contains images belonging to a particular class.
-
 
 
 For example, if you have a dataset with classes such as 'cat', 'dog', and 'bird', the directory structure would look like this:
