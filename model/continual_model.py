@@ -53,12 +53,18 @@ class CL_MODEL(nn.Module):
         class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength=self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
         
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(12, 6))  # Adjust figure size
         ax.bar(class_distribution.keys(), class_distribution.values())
         ax.set_title(f'Task {self.current_task_index} Buffer Distribution')
         ax.set_xlabel('Class')
         ax.set_ylabel('Count')
-        plt.xticks(rotation=45)
+        
+        # Rotate x-axis labels and adjust font size
+        plt.xticks(rotation=90, fontsize=8)
+        
+        # Optionally, display only every nth label to reduce clutter
+        for label in ax.get_xticklabels()[::2]:  # Show every 2nd label
+            label.set_visible(False)
         
         self.wandb.log({
             f'Task_{self.current_task_index}_TRAIN_buffer_distribution': self.wandb.Image(fig),
@@ -71,18 +77,28 @@ class CL_MODEL(nn.Module):
         class_counts = torch.bincount(self.buffer.labels[:self.buffer.__len__()].squeeze(), minlength=self.cfg.nclasses)
         class_distribution = {f'class_{i}': class_counts[i].item() for i in range(self.cfg.nclasses)}
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(12, 6))  # Adjust figure size
         ax.bar(class_distribution.keys(), class_distribution.values())
         ax.set_title(f'Task {self.current_task_index} Evaluation Buffer Distribution')
         ax.set_xlabel('Class')
         ax.set_ylabel('Count')
-        plt.xticks(rotation=45)
         
-        fig_cm, ax_cm = plt.subplots()
-        sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm)
+        # Rotate x-axis labels and adjust font size
+        plt.xticks(rotation=90, fontsize=8)
+        
+        # Optionally, display only every nth label to reduce clutter
+        for label in ax.get_xticklabels()[::2]:  # Show every 2nd label
+            label.set_visible(False)
+        
+        fig_cm, ax_cm = plt.subplots(figsize=(12, 10))
+        sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm,
+                    annot_kws={"size": 6},  # Adjust font size for annotations
+                    cbar_kws={"shrink": 0.75})  # Adjust color bar size
         ax_cm.set_title(f'Task {self.current_task_index} Confusion Matrix')
         ax_cm.set_xlabel('Predicted')
         ax_cm.set_ylabel('True')
+        plt.xticks(rotation=45, fontsize=6)  # Adjust font size for x-axis labels
+        plt.yticks(rotation=0, fontsize=6)  # Adjust font size for y-axis labels
         
         # Convert all_probs and all_labels to NumPy arrays
         all_probs = np.array(all_probs)
