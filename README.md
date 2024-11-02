@@ -40,6 +40,8 @@ RUN apt-get install pip git -y
 RUN apt-get install pip --upgrade
 RUN apt-get install tmux wget unzip tree -y
 RUN pip install tqdm gpustat scikit-learn wandb matplotlib seaborn
+
+RUN git clone https://github.com/cngusckd/ESE-framework.git
 ```
 
 ### Build Docker Image & Run Container
@@ -48,12 +50,31 @@ docker build -t ese .
 docker run -it --gpus all --name ese_container ese
 ```
 
-## How to Run
+## How to Run ESE framework
 
 ### RUN Example
 ```
 python main.py --dataset mnist --cl_type cil --model er --buffer_extraction random --buffer_storage random
 ```
+This command initiates the overall learning sequence for continual learning, where validation is performed at the end of each task (continual learning consists of a sequence of multiple tasks). At the end of each task, the model evaluates its performance using validation data, allowing us to check how well the model retains previously learned information while learning new information. This process is crucial for preventing catastrophic forgetting and ensuring the continuous improvement of the model's performance.  
+
+When you run the framework with the `--wandb` option, several performance metrics are logged to Weights & Biases ([wandb](#integrating-weights--biases-wandb)). These metrics help in understanding the model's performance and behavior during training and evaluation:
+
+- **Accuracy (val_acc)**: This metric indicates the proportion of correctly classified instances out of the total instances. It provides a general sense of how well the model is performing on the validation set.
+
+- **Validation Loss (val_loss)**: This metric measures the error of the model on the validation set. Lower values indicate better performance, as the model's predictions are closer to the actual values.
+
+- **AUROC (Area Under the Receiver Operating Characteristic Curve)**: This metric evaluates the model's ability to distinguish between classes. A higher AUROC value indicates better performance in terms of classification capability.
+
+- **Confusion Matrix**: This is a table used to describe the performance of a classification model. It shows the true vs. predicted classifications, helping to identify specific areas where the model may be making errors.
+
+- **Buffer Distribution**: This metric shows the distribution of classes in the model's buffer. It helps in understanding how well the buffer is maintaining a balanced representation of different classes.
+
+- **ROC Curve**: The Receiver Operating Characteristic curve is a graphical plot that illustrates the diagnostic ability of a binary classifier system. It is used to visualize the trade-off between the true positive rate and false positive rate.
+
+These metrics are visualized in the wandb dashboard, allowing you to track and analyze the model's performance over time. You can customize the wandb dashboard to focus on specific metrics or compare different runs.
+
+
 
 ### Configuration Options
 
