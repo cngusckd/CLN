@@ -6,6 +6,22 @@ Continual learning, also known as lifelong learning, is a paradigm in machine le
 
 In continual learning, one of the main challenges is overcoming catastrophic forgetting, where the model forgets previously learned information upon learning new tasks. To address this, various strategies such as exemplar storage and extraction are employed. These strategies help in maintaining a balance between learning new information and retaining old knowledge.
 
+### Continual Learning Mechanism
+
+The continual learning process can be visualized as follows:
+
+1. **Task Stream**: The model receives a sequence of tasks, each with its own dataset.
+   ```
+   Task 0 -> Task 1 -> Task 2 -> ... -> Task N
+   ```
+
+2. **Learning and Evaluation**: For each task, the model learns from the current task's data and is evaluated on both the current and previous tasks to ensure knowledge retention.
+   ```
+   [Learn Task 0] -> [Evaluate on Task 0]
+   [Learn Task 1] -> [Evaluate on Task 0 ~ 1]
+   [Learn Task 2] -> [Evaluate on Task 0 ~ 2]
+   ```
+
 For those interested in exploring this field further, the following papers provide a comprehensive overview and insights into continual learning:
 - [Continual Learning: A Comprehensive Review](https://arxiv.org/abs/1802.07569)
 - [Overcoming Catastrophic Forgetting in Neural Networks](https://arxiv.org/abs/1612.00796)
@@ -14,7 +30,7 @@ For those interested in exploring this field further, the following papers provi
 - [On Tiny Episodic Memories in Continual Learning](https://arxiv.org/abs/1902.10486)
 
 ## Timeline for versions
- 
+
 `v1.1` : first public release (`2024.10.30` )
 
 ## Features
@@ -54,9 +70,11 @@ docker run -it --gpus all --name ese_container ese
 
 ### RUN Example
 ```
-python main.py --dataset mnist --cl_type cil --model er --buffer_extraction random --buffer_storage random
+python main.py --seed 42--dataset mnist --cl_type cil --model er --buffer_extraction random --buffer_storage random
 ```
 This command initiates the overall learning sequence for continual learning, where validation is performed at the end of each task (continual learning consists of a sequence of multiple tasks). At the end of each task, the model evaluates its performance using validation data, allowing us to check how well the model retains previously learned information while learning new information. This process is crucial for preventing catastrophic forgetting and ensuring the continuous improvement of the model's performance.  
+
+If you want to conduct experiments under the same conditions but with different random seeds, you can modify the `--seed` option to different numbers. This allows you to test the robustness and variability of your model's performance across different random initializations. By running multiple experiments with different seeds, you can gain insights into the stability and generalizability of your model, which is crucial for AI research. This practice helps in identifying whether the observed performance is consistent or if it varies significantly due to the randomness in the training process.
 
 When you run the framework with the `--wandb` option, several performance metrics are logged to Weights & Biases ([wandb](#integrating-weights--biases-wandb)). These metrics help in understanding the model's performance and behavior during training and evaluation:
 
@@ -74,10 +92,10 @@ When you run the framework with the `--wandb` option, several performance metric
 
 These metrics are visualized in the wandb dashboard, allowing you to track and analyze the model's performance over time. You can customize the wandb dashboard to focus on specific metrics or compare different runs.
 
-
-
 ### Configuration Options
 
+- `--seed`: Seed for experiment (default: 42)
+- `--wandb`: Use wandb for experiment
 - `--dataset`: Dataset to use ('mnist', 'cifar10', 'cifar100')
 - `--image_shape`: Shape of the dataset images (default: (32, 32))
 - `--cl_type`: Type of continual learning ('cil', 'dil')
@@ -190,7 +208,7 @@ data/
 When using the Tiny ImageNet dataset, you need to specify the `image_shape` and `nclasses` options. Below is an example of how to use Tiny ImageNet:
 
 ```
-python main.py --dataset custom_dataset --image_shape "64 64" --nclasses 200
+python main.py --dataset custom_dataset --image_shape 64 64 --nclasses 200
 ```
 
 ### Details for IncrementalCustomDataloader

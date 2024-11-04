@@ -30,6 +30,7 @@ def build_data(cfg):
         cil_train = IncrementalCIFAR10(cfg, root='./data', train=True, transform=transform)
         cil_test = IncrementalCIFAR10(cfg, root='./data', train=False, transform=transform)
     elif cfg.dataset == 'cifar100':
+        cfg.nclasses = 100
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
@@ -89,6 +90,15 @@ class CL_Trainer:
         for task_idx in range(self.cl_model.cfg.num_increments):
             
             val_loader_list.append(self.test_loader.get_incremental_loader(task_idx))
+            # Calculate the range of classes for the current task
+            classes_per_increment = self.cl_model.cfg.nclasses // self.cl_model.cfg.num_increments
+            current_classes = range(task_idx * classes_per_increment, (task_idx + 1) * classes_per_increment)
+            
+            # Print current and learned classes
+            print(f"Task {task_idx} starting...")
+            print(f"Currently learning classes: {list(current_classes)}")
+            print(f"Classes learned so far: {list(range((task_idx + 1) * classes_per_increment))}")
+            
             # load test_loader until task t (current task)
             
             train_loader = self.train_loader.get_incremental_loader(task_idx)

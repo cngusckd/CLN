@@ -92,7 +92,7 @@ class CL_MODEL(nn.Module):
         
         fig_cm, ax_cm = plt.subplots(figsize=(12, 10))
         sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm,
-                    annot_kws={"size": 6},  # Adjust font size for annotations
+                    annot_kws={"size": 2},  # Adjust font size for annotations
                     cbar_kws={"shrink": 0.75})  # Adjust color bar size
         ax_cm.set_title(f'Task {self.current_task_index} Confusion Matrix')
         ax_cm.set_xlabel('Predicted')
@@ -125,12 +125,12 @@ class CL_MODEL(nn.Module):
         ax_roc.legend(loc='lower right')
         
         self.wandb.log({
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_buffer_distribution': self.wandb.Image(fig),
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_acc': val_acc,
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_loss': val_loss,
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_auroc': auroc,
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_conf_matrix': self.wandb.Image(fig_cm),
-            f'Task_{self.current_task_index}_about_{task_idx}_EVAL_roc_curve': self.wandb.Image(fig_roc)  # Log ROC curve as image
+            f'Task_{self.current_task_index}_EVAL_buffer_distribution': self.wandb.Image(fig),
+            f'Task_EVAL_acc': val_acc,
+            f'Task_EVAL_loss': val_loss,
+            f'Task_EVAL_auroc': auroc,
+            f'Task_{self.current_task_index}_EVAL_conf_matrix': self.wandb.Image(fig_cm),
+            f'Task_{self.current_task_index}_EVAL_roc_curve': self.wandb.Image(fig_roc)  # Log ROC curve as image
         })
         
         plt.close(fig)
