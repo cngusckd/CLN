@@ -125,12 +125,12 @@ class CL_MODEL(nn.Module):
         ax_roc.legend(loc='lower right')
         
         self.wandb.log({
-            f'Task_{self.current_task_index}_EVAL_buffer_distribution': self.wandb.Image(fig),
+            f'Task_{self.current_task_index-1}_EVAL_buffer_distribution': self.wandb.Image(fig),
             f'Task_EVAL_acc': val_acc,
             f'Task_EVAL_loss': val_loss,
             f'Task_EVAL_auroc': auroc,
-            f'Task_{self.current_task_index}_EVAL_conf_matrix': self.wandb.Image(fig_cm),
-            f'Task_{self.current_task_index}_EVAL_roc_curve': self.wandb.Image(fig_roc)  # Log ROC curve as image
+            f'Task_{self.current_task_index-1}_EVAL_conf_matrix': self.wandb.Image(fig_cm),
+            f'Task_{self.current_task_index-1}_EVAL_roc_curve': self.wandb.Image(fig_roc)  # Log ROC curve as image
         })
         
         plt.close(fig)
