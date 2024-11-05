@@ -92,7 +92,7 @@ class CL_MODEL(nn.Module):
         
         fig_cm, ax_cm = plt.subplots(figsize=(12, 10))
         sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', ax=ax_cm,
-                    annot_kws={"size": 2},  # Adjust font size for annotations
+                    annot_kws={"size": 100 // self.cfg.nclasses},  # Adjust font size for annotations
                     cbar_kws={"shrink": 0.75})  # Adjust color bar size
         ax_cm.set_title(f'Task {self.current_task_index} Confusion Matrix')
         ax_cm.set_xlabel('Predicted')
