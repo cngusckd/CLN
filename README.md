@@ -282,7 +282,7 @@ bash multi_process_test.sh
 
 ## Contribution
 
-Hyeonchang Chu in [AI_LAB](http://air.cau.ac.kr/)
+Hyeonchang Chu in [AI_LAB](http://air.cau.ac.kr/)   
 Thanks to Hyejeong Im, Seungwoo Song for feedback :)
 ## License
 
