@@ -1,4 +1,4 @@
-# ESE : Exemplar Storage & Extraction frameworks for Continual Learning
+# ESE : Exemplar Storage & Extraction framework for Continual Learning
 
 ## Introduction
 
@@ -40,8 +40,8 @@ For those interested in exploring this field further, the following papers provi
 - Supporting experimental settings `cil`:class incremental learning, `dil`:domain incremental learning
 - Supporting backbone models `resnet18`, `resnet34`, `resnet50`
 - Supporting exemplar(buffer) extraction and storage strategies 
-  - exemplar extraction: `random`, `mir`
-  - exemplar storage: `random`, `gss`
+  - exemplar extraction: `random`, `mir` (methods used to decide which data to extract from the buffer during replay)
+  - exemplar storage: `random`, `gss` (methods used to decide which data to replace in the buffer storage)
 
 ## Installation with Docker
 ### Dockerfile
@@ -176,6 +176,9 @@ The framework supports Incremental Learning for custom datasets like Tiny ImageN
 ### Preparing the Tiny ImageNet Dataset for IncrementalCustomDataloader
 
 First, use the `make_tiny_image.sh` script to download and prepare the Tiny ImageNet dataset.
+```
+bash make_tiny_image.sh
+```
 
 ### Directory Structure
 
@@ -215,6 +218,7 @@ python main.py --dataset custom_dataset --image_shape 64 64 --nclasses 200
 
 The structure of the custom dataset is organized such that each folder represents a class, and the images within each folder correspond to that specific class. This means that the dataset is divided into multiple folders, where each folder contains images belonging to a particular class.
 
+To use IncrementalCustomDataloader, you need to modify the `root` argument in `model/trainer.py` to match the location of your dataset.
 
 For example, if you have a dataset with classes such as 'cat', 'dog', and 'bird', the directory structure would look like this:
 
@@ -279,7 +283,7 @@ bash multi_process_test.sh
 ## Contribution
 
 Hyeonchang Chu in [AI_LAB](http://air.cau.ac.kr/)
-
+Thanks to Hyejeong Im, Seungwoo Song for feedback :)
 ## License
 
 MIT License
