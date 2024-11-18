@@ -1,4 +1,4 @@
-# ESE : Exemplar Storage & Extraction framework for Continual Learning
+# CLN : Continual Learning framework for Novice
 
 ## Introduction
 
