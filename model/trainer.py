@@ -1,4 +1,4 @@
-import wandb
+import numpy as np
 
 from torchvision import transforms
 
@@ -100,5 +100,10 @@ class CL_Trainer:
             val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs = self.cl_model.eval_task(val_loader_list)
             if self.cl_model.cfg.wandb:
                 self.cl_model.wandb_eval_logger(val_acc, val_loss, auroc, conf_matrix, all_labels, all_probs, task_idx)
+                
+            torch.save(self.cl_model.backbone.state_dict(), f'task_idx_{task_idx}_saved_model.pth')
+            os.makedirs('buffer_data', exist_ok = True)
+            np.save(f'buffer_data/task_idx_{task_idx}_examples', self.cl_model.buffer.examples.numpy())
+            np.save(f'buffer_data/task_idx_{task_idx}_labels', self.cl_model.buffer.labels.numpy())
 
         return exp_outputs

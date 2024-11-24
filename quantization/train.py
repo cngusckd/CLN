@@ -6,14 +6,13 @@ from catalyst import dl
 
 from collections import OrderedDict
 
-from model.resnet2 import resnet18
+from models import resnet18
 import argparse
 
 from dataset import CifarDS
 from config import *
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
-
 
 def build_parser():
     argparser = argparse.ArgumentParser()
@@ -36,7 +35,8 @@ def main(args):
     valid_loader = dataset.get_valid_gen()
     loaders = OrderedDict({"train": train_loader, "valid": valid_loader})
 
-    model = resnet18()
+    model = resnet18(nclasses = 10)
+    model.load_state_dict(torch.load('task_idx_4_saved_model.pth'))
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
@@ -59,7 +59,8 @@ def main(args):
             ),
             dl.CheckpointCallback(
             logdir=WEIGHTS_DIR,
-            save_n_best=1,  # 가장 성능이 좋은 가중치만 저장
+            # save_n_best=1,  # 가장 성능이 좋은 가중치만 저장
+            save_best = True,
             mode="model",   # 모델 가중치만 저장
         ),
         ],
@@ -69,6 +70,7 @@ def main(args):
         minimize_valid_metric=True,
         verbose=True,
         load_best_on_end=True,
+        engine = dl.GPUEngine("cuda:1")
     )
 
 
