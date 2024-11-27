@@ -37,6 +37,7 @@ def main(args):
     loaders = OrderedDict({"train": train_loader, "valid": valid_loader})
 
     model = resnet18()
+    model.load_state_dict(torch.load('model_weights.pth'))
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)

@@ -1,8 +1,33 @@
+import numpy as np
+import torch
+
 from torch.utils.data import DataLoader
 
+from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import CIFAR10
 
+class numpyDataset(Dataset):
+    def __init__(self, examples_path, labels_path, transform=None, target_transform=None):
+        self.data = np.load(examples_path).astype(np.float32)
+        self.labels = np.load(labels_path).astype(np.int64)
+        self.data = torch.tensor(self.data, dtype=torch.float32)
+        self.labels = torch.tensor(self.labels, dtype=torch.long)
+        self.transform = transform
+        self.target_transform = target_transform
+        
+
+    def __getitem__(self, index):
+        img = self.data[index]
+        label = self.labels[index, 0]  # Extract scalar from (1,) shape
+        if self.transform is not None:
+            img = self.transform(img)
+        if self.target_transform is not None:
+            label = self.target_transform(label)
+        return img, label
+
+    def __len__(self):
+        return len(self.data)
 
 class CifarDS:
     def __init__(self, directory: str = "./data/cifar10/"):
@@ -41,13 +66,18 @@ class CifarDS:
     def get_train_gen(
         self,
         n_batches: int = None,
-        batch_size: int = 512,
+        batch_size: int = 64,
         base_transforms: list = None,
         augmented_transforms: list = None,
     ) -> DataLoader:
         self.define_transforms(base_transforms, augmented_transforms)
-        train_ds = CIFAR10(
-            self.directory, train=True, download=True, transform=self.transform_augment
+        # train_ds = CIFAR10(
+        #     self.directory, train=True, download=True, transform=self.transform_augment
+        # )
+        train_ds = numpyDataset(
+            examples_path = 'examples.npy',
+            labels_path = 'labels.npy',
+            # transform = self.transform_augment
         )
         if n_batches:
             train_ds.data = train_ds.data[: n_batches * batch_size]

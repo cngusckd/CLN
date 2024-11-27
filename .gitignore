@@ -5,3 +5,4 @@ experiment_outputs_test/*
 wandb/
 model/__pycache__/
 __pycache__/*
+weights/

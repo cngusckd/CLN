@@ -104,7 +104,7 @@ class CL_Trainer:
             
             if task_idx == (self.cl_model.cfg.num_increments - 1):
                 np.save("examples.npy", self.cl_model.buffer.examples.numpy())
-                np.save("labels.npy", self.cl_model.buffer.examples.numpy())
+                np.save("labels.npy", self.cl_model.buffer.labels.numpy())
                 torch.save(self.cl_model.backbone.state_dict(), 'model_weights.pth')
 
         return exp_outputs
