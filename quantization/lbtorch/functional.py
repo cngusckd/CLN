@@ -87,6 +87,7 @@ def quant(
 
 
 def dequant(tensor: torch.Tensor, scale, zero_point, n_bits, width):
+    # Ensure scale and zero_point are on the same device as tensor
     device = tensor.device
     scale = scale.to(device)
     zero_point = zero_point.to(device)
@@ -101,15 +102,13 @@ def dequant(tensor: torch.Tensor, scale, zero_point, n_bits, width):
         missing_dims = 4 - len(tensor.shape)
         for _ in range(missing_dims):
             tensor = torch.unsqueeze(tensor, 0)
-        tensor = torch.cat(
-            (
-                tensor,
-                torch.zeros(
-                    *tensor.shape[:-1], width - tensor.shape[-1], dtype=torch.int8
-                ),
-            ),
-            dim=-1,
+
+        # Move additional tensor to the same device before concatenating
+        padding_tensor = torch.zeros(
+            *tensor.shape[:-1], width - tensor.shape[-1], dtype=torch.int8, device=device
         )
+        tensor = torch.cat((tensor, padding_tensor), dim=-1)
+
         assert tensor.dtype == torch.int8  # isinstance doesn't work with torch
         shift = {0: 3, 1: 2, 2: 1, 3: 0}
         for i in range(width - 1, -1, -1):
@@ -126,11 +125,14 @@ def dequant(tensor: torch.Tensor, scale, zero_point, n_bits, width):
         missing_dims = 4 - len(tensor.shape)
         for _ in range(missing_dims):
             tensor = torch.unsqueeze(tensor, 0)
-        tensor = torch.cat(
-            (tensor, torch.zeros(*tensor.shape[:-1], width - tensor.shape[-1])), dim=-1
+
+        # Move additional tensor to the same device before concatenating
+        padding_tensor = torch.zeros(
+            *tensor.shape[:-1], width - tensor.shape[-1], device=device
         )
+        tensor = torch.cat((tensor, padding_tensor), dim=-1)
         tensor = tensor.to(torch.int8)
-        # assert tensor.dtype == torch.int8
+
         for i in range(width - 1, -1, -1):
             val = (tensor[:, :, :, i // 2] & (0xF << 4 * ((i + 1) % 2))) >> (
                 (i + 1) % 2
