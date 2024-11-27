@@ -8,7 +8,7 @@ import copy
 
 from sklearn.metrics import confusion_matrix, roc_auc_score, roc_curve
 
-from model.resnet import resnet18, resnet34, resnet50
+from model.resnet import resnet18
 from model.buffer import DefaultBuffer
 
 class CL_MODEL(nn.Module):
@@ -20,11 +20,11 @@ class CL_MODEL(nn.Module):
         self.device = cfg.device
         
         if cfg.backbone == 'resnet18':
-            self.backbone = resnet18(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
-        elif cfg.backbone == 'resnet34':
-            self.backbone = resnet34(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
-        elif cfg.backbone == 'resnet50':
-            self.backbone = resnet50(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
+            self.backbone = resnet18(num_classes=cfg.nclasses).to(self.device)
+        # elif cfg.backbone == 'resnet34':
+        #     self.backbone = resnet34(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
+        # elif cfg.backbone == 'resnet50':
+        #     self.backbone = resnet50(nclasses=cfg.nclasses, nf=cfg.image_shape[0]).to(self.device)
         else:
             raise ValueError(f"Unsupported backbone: {cfg.backbone}")
         
